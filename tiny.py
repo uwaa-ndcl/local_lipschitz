@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import my_config
-import dirs
 
 net_name = 'tiny'
 plot_name = 'Tiny Net'
@@ -17,7 +16,7 @@ batch_size_ball = 10**5
 eps_min = .1
 eps_max = 10
 step_size_grad = 1e-4
-main_dir = dirs.tiny_dir
+main_dir = 'data/tiny/'
 
 # input size
 n = 3

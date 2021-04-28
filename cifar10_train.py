@@ -4,12 +4,11 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-import dirs
 import my_config
 import cifar10
 
 device = my_config.device
-cifar10_dir = dirs.cifar10_dir
+cifar10_dir = exp.main_dir
 
 # datasets
 n_workers = 8

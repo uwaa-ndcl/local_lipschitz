@@ -10,22 +10,23 @@ import my_config
 import network_bound
 import utils
 
-# setup
-device = my_config.device 
 #import tiny as exp
-#import mnist as exp
+import mnist as exp
 #import cifar10 as exp
 #import alexnet as exp
-import vgg16 as exp
+#import vgg16 as exp
 
 def relu(x):
     return (x>0)*x
 
+# setup
+device = my_config.device 
+
 # which bounds to compute?
-compute_rand =   0
+compute_rand =   1
 compute_grad =   1
-compute_global = 0
-compute_local =  0
+compute_global = 1
+compute_local =  1
 
 # get network and nominal input
 main_dir = exp.main_dir

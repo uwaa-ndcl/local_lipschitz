@@ -7,13 +7,13 @@ import my_config
 import utils
 import network_bound
 
-# setup
-device = my_config.device 
 import mnist as exp
 #import cifar10 as exp
 #import alexnet as exp
 #import vgg16 as exp
 
+# setup
+device = my_config.device 
 main_dir = exp.main_dir
 net_name = exp.net_name
 plot_name = exp.plot_name

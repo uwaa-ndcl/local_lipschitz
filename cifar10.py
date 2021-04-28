@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 
 import my_config
-import dirs
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer',
            'dog', 'frog', 'horse', 'ship', 'truck')
@@ -27,7 +26,7 @@ eps_max = 2
 eps_min_bisect = 4.1e-3 # new
 eps_max_bisect = 4.5e-3 # new
 step_size_grad = 1e-4
-main_dir = dirs.cifar10_dir
+main_dir = 'data/cifar10/'
 
 class MyNet(nn.Module):
     # https://keras.io/examples/cifar10_cnn/
@@ -121,7 +120,7 @@ transform_test = transforms.Compose([
 ])
 
 # nominal input
-filename = os.path.join(dirs.cifar10_dir, 'dog4.png')
+filename = os.path.join(main_dir, 'dog4.png')
 x0 = Image.open(filename)
 x0 = transform_test(x0)
 x0 = torch.unsqueeze(x0, 0)
@@ -130,7 +129,7 @@ x0 = x0.to(my_config.device)
 def net():
     # load the checkpoint file
     net = MyNet()
-    ckpt_file = os.path.join(dirs.cifar10_dir, 'ckpt_499.ckpt')
+    ckpt_file = os.path.join(main_dir, 'ckpt_499.ckpt')
     net.load_state_dict(torch.load(ckpt_file, map_location=my_config.device)['net'])
 
     # create a list of the network's layers

@@ -4,18 +4,17 @@ import matplotlib.pyplot as pp
 import torch
 import torch.nn as nn
 
-import dirs
 import my_config
-
-# plot settings
-pp.rc('text', usetex=True)
-pp.rc('text.latex', preamble=r'\usepackage{amsmath,amsfonts,amssymb}  \providecommand{\norm}[1]{\lVert#1\rVert}  \def\<#1>{\boldsymbol{\mathbf{#1}}}')
 
 #import tiny as exp
 import mnist as exp
 #import cifar10 as exp
 #import alexnet as exp
 #import vgg16 as exp
+
+# plot settings
+pp.rc('text', usetex=True)
+pp.rc('text.latex', preamble=r'\usepackage{amsmath,amsfonts,amssymb}  \providecommand{\norm}[1]{\lVert#1\rVert}  \def\<#1>{\boldsymbol{\mathbf{#1}}}')
 
 # setup
 device = my_config.device 
@@ -35,8 +34,8 @@ global_npz = os.path.join(main_dir, 'global.npz')
 local_npz = os.path.join(main_dir, 'local.npz')
 est_lipest_npz = os.path.join(main_dir, 'lip_estimation/', 'results.npz')
 
-#fig_i_png = os.path.join(dirs.fig_dir, net_name+'_layer_%1d.png') 
-fig_png = os.path.join(dirs.fig_dir, net_name+'.png') 
+#fig_i_png = os.path.join('fig/', net_name+'_layer_%1d.png') 
+fig_png = os.path.join('fig/', net_name+'.png') 
 
 # lower bound, random
 plot_rand = os.path.isfile(rand_npz)

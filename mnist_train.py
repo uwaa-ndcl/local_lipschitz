@@ -4,11 +4,10 @@ import torch.nn as nn
 import torchvision
 
 import my_config
-import dirs
 import mnist
 
 device = my_config.device
-mnist_dir = dirs.mnist_dir
+mnist_dir = exp.main_dir
 
 # data sets
 n_workers = 8

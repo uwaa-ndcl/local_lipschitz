@@ -11,7 +11,6 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 
 import my_config
-import dirs
 
 classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 net_name = 'mnist'
@@ -37,7 +36,7 @@ eps_max = 7
 eps_min_bisect = .04 # new
 eps_max_bisect = .07 # new
 step_size_grad = 1e-4
-main_dir = dirs.mnist_dir
+main_dir = 'data/mnist/'
 
 # see:
 # https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
@@ -118,7 +117,7 @@ transform_test = transforms.Compose([
 ])
 
 # nominal input
-filename = os.path.join(dirs.mnist_dir, '8.png')
+filename = os.path.join(main_dir, '8.png')
 x0 = Image.open(filename)
 x0 = transform_test(x0)
 x0 = torch.unsqueeze(x0, 0)
@@ -127,7 +126,7 @@ x0 = x0.to(my_config.device)
 def net():
     # load checkpoint file
     net = LeNet()
-    ckpt_file = os.path.join(dirs.mnist_dir, 'ckpt_99.ckpt')
+    ckpt_file = os.path.join(main_dir, 'ckpt_99.ckpt')
     net.load_state_dict(torch.load(ckpt_file)['net'])
 
     # create a list of the network's layers 
