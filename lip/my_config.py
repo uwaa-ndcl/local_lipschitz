@@ -1,0 +1,2 @@
+device = 'cuda'
+#device = 'cpu'

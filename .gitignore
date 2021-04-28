@@ -1,0 +1,15 @@
+*.pyc
+*.png
+*.jpg
+*.npz
+*.mat
+data/mnist/*
+data/cifar10/*
+data/alexnet/*
+data/vgg16/*
+!data/mnist/*.png
+!data/cifar10/*.png
+!data/alexnet/*.png
+!data/vgg16/*.png
+!data/mnist/ckpt_99.ckpt
+!data/cifar10/ckpt_499.ckpt
