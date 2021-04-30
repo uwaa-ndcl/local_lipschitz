@@ -43,15 +43,21 @@ Run the following command. To change the network, change `import mnist as exp` t
 * to run lip estimation:
 Run `custom.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `custom_get_sv.py` with the same network uncommented.
 
-* to run lip SDP:
+* to run lip SDP: run `lipsdp/run.py`
 
 
-## minimal working example/using your own network
+## minimal working example / using your own network
 
-A minimal working example showing how to compute the local Lipschitz bound of a feedforward network is shown in the `simple_example.py` file.
+A minimal working example showing how to compute the local Lipschitz bound of a feedforward network, and how to use that result to compute an adversarial bound, is shown in the `simple_example.py` file.
 
 
 ## extra
+
+The `tests/` directory contains some brute-force checks on some of the analytical results.
+
+* sanity check of our lipschitz results using a brute-force approach: `relu_lipschitz.py`, `affine_relu_lipschitz.py`, `max_pooling_lipschitz.py`
+
+* computational checks: `power_iteration.py`
 
 ## notes
 

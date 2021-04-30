@@ -7,11 +7,10 @@ from scipy.io import savemat
 import torch
 import torch.nn as nn
 
-import lip.directories as dirs
-from lip import my_config
-from lip.network import mnist, cifar10, alexnet
-import lip.network.utils as ut
-from lip.third_party.lipsdp import solve_sdp
+import my_config
+import mnist, cifar10, alexnet
+import utils
+import solve_sdp
 
 # setup
 solve_sdp_file = solve_sdp.__file__ 
@@ -37,7 +36,7 @@ net = net.to(device)
 net.eval()
 
 # load image
-main_dir = dirs.mnist_dir
+main_dir = exp.main_dir
 filename = os.path.join(main_dir, '8.png')
 x0 = Image.open(filename)
 x0 = mnist.transform_test(x0)
@@ -54,7 +53,7 @@ for i, layer in enumerate(net.layers):
     X.append(f(X[-1]))
     if isinstance(layer, nn.Sequential):
         if isinstance(layer[0], nn.Conv2d):
-            weight_i = ut.conv_matrix(layer[0], X[i].shape)
+            weight_i = utils.conv_matrix(layer[0], X[i].shape)
             weight_i = weight_i.detach().cpu().numpy().astype('float64')
 
         elif isinstance(layer[0], nn.Linear):

@@ -4,24 +4,30 @@ in custom_save/
 We perform the 100-optimization implemented in optim_nn_pca_greedy
 """
 import os
+import sys
+import pathlib
 import math
 import torch
 import torch.nn as nn
 import torchvision
 import numpy as np
 
-import lip.directories as dirs
-from lip import my_config
+from lipschitz_utils import *
+from max_eigenvalue import k_generic_power_method
+from seqlip import optim_nn_pca_greedy
 
-from lip.third_party.lip_estimation.lipschitz_utils import *
-from lip.third_party.lip_estimation.max_eigenvalue import k_generic_power_method
-from lip.third_party.lip_estimation.seqlip import optim_nn_pca_greedy
+# add main directory to system path so I can import the files
+script_dir = pathlib.Path(__file__).parent.absolute() 
+main_dir = script_dir.parent
+sys.path.insert(0, main_dir)
+
+import my_config
 
 # network
-#import lip.network.mnist as exp
-import lip.network.cifar10 as exp
-#import lip.network.alexnet as exp
-#import lip.network.vgg16 as exp
+import mnist as exp
+#import cifar10 as exp
+#import alexnet as exp
+#import vgg16 as exp
 
 # network
 save_dir = os.path.join(exp.main_dir, 'lip_estimation/')
@@ -40,7 +46,7 @@ compute_module_input_sizes(net, input_size)
 # indices of convolutions and linear layers
 convs = []
 lins = []
-for i, function in enumerate(net.functions):
+for i, function in enumerate(net.layers):
     if isinstance(function, nn.Conv2d):
         convs.append(i)
     elif isinstance(function, nn.Linear):

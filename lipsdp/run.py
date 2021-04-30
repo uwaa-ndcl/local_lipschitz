@@ -3,10 +3,14 @@ import numpy as np
 from scipy.io import savemat
 import subprocess
 
-import lip.directories as dirs
-from lip import my_config
-import lip.network.utils as ut
-import lip.third_party.lipsdp.solve_sdp as solve_sdp
+# add main directory to system path so I can import the files
+script_dir = pathlib.Path(__file__).parent.absolute() 
+main_dir = script_dir.parent
+sys.path.insert(0, main_dir)
+
+import my_config
+import utils
+import solve_sdp
 
 # files
 device = my_config.device 
@@ -32,8 +36,8 @@ weight_3 = np.random.rand(2,4)
 weights = [weight_1, weight_2, weight_3]
 '''
 # neural network
-import lip.network.mnist as exp
-#import lip.network.cifar10 as exp # memory error
+import mnist as exp
+#import cifar10 as exp # memory error
 net = exp.net()
 net = net.to(device)
 net.eval()
