@@ -18,7 +18,7 @@ Trevor Avant & Kristi A. Morgansen
 
 ## using GPU or CPU
 
-* This code can be run on either a CUDA-supported GPU, or on a CPU. This designation is set by uncommenting `device = 'cuda'` or `device = 'cpu'` in the `my_config.py` file.
+This code can be run on either a CUDA-supported GPU, or on a CPU. This designation is set by uncommenting `device = 'cuda'` or `device = 'cpu'` in the `my_config.py` file.
 
 
 ## simulations
@@ -28,6 +28,7 @@ Trevor Avant & Kristi A. Morgansen
 Run the following commands.
 * `python calculate_bounds.py`
 * `python calculate_bounds_plot.py`
+
 Note that to change the network, change `import mnist as exp` to something different. Also note that the random and gradient methods may take a long time to run. You can toggle whether these methods are run by chagning the `compute_rand` and `compute_grad` variables.
 
 
