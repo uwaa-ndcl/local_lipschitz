@@ -36,6 +36,7 @@ Note that to change the network, change `import mnist as exp` to something diffe
 
 Run the following command:
 * `python calculate_bounds_adv.py`
+
 Note that to change the network, change `import mnist as exp` to something different.
 
 
