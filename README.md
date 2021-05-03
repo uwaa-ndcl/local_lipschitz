@@ -4,7 +4,7 @@
 
 This is the code for the paper
 
-**Analytical Bounds on the Local Lipschitz Constants of ReLU Networks**
+[**Analytical Bounds on the Local Lipschitz Constants of ReLU Networks**](https://arxiv.org/abs/2104.14672)
 
 Trevor Avant & Kristi A. Morgansen
 
@@ -29,8 +29,6 @@ Run the following commands. To change the network, change `import mnist as exp` 
 * run `python calculate_bounds.py`
 * run `python calculate_bounds_plot.py`
 
-% You need to make a file like `tiny.py`, `mnist.py`, `cifar10.py`, `alexnet.py` or `vgg16.py`. It should have the following attributes: `x0` (the nominal input). It should also contain a function called `net()` which returns the network. The object returned by `net` should have a property called `layers` which is a list of layers in the network.
-
 
 **adversarial bounds**: 
 
@@ -40,10 +38,9 @@ Run the following command. To change the network, change `import mnist as exp` t
 
 ## to run the 3rd party techniques
 
-* to run lip estimation:
-Run `custom.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `custom_get_sv.py` with the same network uncommented.
+* lip estimation (Scaman et al., 2018): Run `lipestimation/custom.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `custom_get_sv.py` with the same network uncommented.
 
-* to run lip SDP: run `lipsdp/run.py`
+* LipSDP (Fazlyab et al., 2019): Run `lipsdp/run.py`. Note the code provided by the authors of LipSDP requires Matlab and the [Matlab Engine API for Python](https://www.mathworks.com/help/matlab/matlab-engine-for-python.html).
 
 
 ## minimal working example / using your own network
@@ -53,12 +50,4 @@ A minimal working example showing how to compute the local Lipschitz bound of a 
 
 ## extra
 
-The `tests/` directory contains some brute-force checks on some of the analytical results.
-
-* sanity check of our lipschitz results using a brute-force approach: `relu_lipschitz.py`, `affine_relu_lipschitz.py`, `max_pooling_lipschitz.py`
-
-* computational checks: `power_iteration.py`
-
-## notes
-
-* In this project,
+The `tests/` directory contains some additional files. These files include brute-force checks on some of the analytical results, as well as checks on some of our computational methods.
