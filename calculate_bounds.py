@@ -13,8 +13,8 @@ import utils
 #import tiny as exp
 #import mnist as exp
 #import cifar10 as exp
-import alexnet as exp
-#import vgg16 as exp
+#import alexnet as exp
+import vgg16 as exp
 
 def relu(x):
     return (x>0)*x

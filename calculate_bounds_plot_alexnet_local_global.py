@@ -118,14 +118,15 @@ if plot_net_lipest:
 '''
 
 #pp.title(plot_name, fontsize=30)
-ax.legend(loc=(.19,.1), fontsize=20)
+ax.legend(loc=(.19,.1), fontsize=18)
 #pp.yscale('log')
 ax.tick_params(axis='both', labelsize=20)
 ax.yaxis.get_offset_text().set_fontsize(20)
-pp.xlabel('input perturbation size ($\epsilon$)', fontsize=30)
-pp.ylabel('Lipschitz bound', fontsize=30)
+pp.xlabel('input perturbation size ($\epsilon$)', fontsize=22)
+pp.ylabel('Lipschitz bound', fontsize=22)
 #pp.ylabel('Lipschitz bound ($\\times 10^9)$', fontsize=30)
-ax.set_ylim(0, 1.25*10**9)
+ax.set_xlim(-.1, 3.1)
+ax.set_ylim(-10**8, 1.25*10**9)
 
 pp.tight_layout()
 
@@ -136,6 +137,7 @@ ext = (0,1,0,1)
 ax_im.imshow(im, aspect='equal', extent=ext)
 ax_im.axis('off')
 pp.text(.5, 1+.03, 'nominal input', ha='center', fontsize=14)
+#pp.text(.5, -.08, 'network = AlexNet', ha='center', fontsize=14)
 
 #pp.savefig(fig_png)
 pp.savefig(fig_pdf)

@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -7,10 +8,10 @@ import my_config
 import utils
 import network_bound
 
-import mnist as exp
+#import mnist as exp
 #import cifar10 as exp
 #import alexnet as exp
-#import vgg16 as exp
+import vgg16 as exp
 
 # setup
 device = my_config.device 
@@ -44,6 +45,7 @@ bound_global = np.prod(bound_layer_global)
 # get largest and next largest elements of output (pre-softmax)
 print('\nLOCAL LOWER BOUND')
 
+t0 = time.time()
 x0.requires_grad = True 
 y0 = net(x0)
 top2_true, ind_top2_true = torch.topk(y0.flatten(), 2)
@@ -51,30 +53,69 @@ ind1_true = ind_top2_true[0].item()
 ind2_true = ind_top2_true[1].item()
 output_delta = (top2_true[0]-top2_true[1]).item() # minimum change in output to change classification
 
-# bisection method to find largest epsilon
-'''
+# step 1: start with a guess,
+#         and determine if it is a lower or upper bound on the maximum epsilon
+pows = [-300, -100, -10, -7, -5, -3, -1, 0, 10, 1000]
+eps = [10**pow for pow in pows]
+i = 4 # starting guess on the index of eps
+L_bound = network_bound.network_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
+if eps[i]*L_bound < output_delta/np.sqrt(2):
+	eps_min = eps[i]
+	i += 1
+	search_dir = 'forward'
+else:
+	eps_max = eps[i]
+	i -= 1
+	search_dir = 'backward'
 
+# step 2: determine the lower/upper bound if the guess was an upper/lower bound, respectively 
+if search_dir=='forward':
+    while i<len(eps):
+        L_bound = network_bound.network_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
+        if eps[i]*L_bound < output_delta/np.sqrt(2):
+            eps_min = eps[i]
+            i += 1
+        else:
+            eps_max = eps[i]
+            break
+
+    if 'eps_max' not in locals():
+        print('ERROR: MAXIMUM EPSILON NOT FOUND!!!')
+
+elif search_dir=='backward':
+    while i>=0:
+        L_bound = network_bound.network_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
+        if eps[i]*L_bound < output_delta/np.sqrt(2):
+            eps_min = eps[i]
+            break
+        else:
+            eps_max = eps[i]
+            i -= 1
+
+    if 'eps_min' not in locals():
+        print('ERROR: MINIMUM EPSILON NOT FOUND!!!')
+
+# step 3: refine the bounds using bisection
+'''
       |--------------------------|--------------------------|
    eps_min                      eps                      eps_max
-
 '''
 n_runs = 10
-eps_min = exp.eps_min_bisect
-eps_max = exp.eps_max_bisect
 for i in range(n_runs):
     eps = (eps_max + eps_min)/2
     L_bound = network_bound.network_bound(net, x0, eps, batch_size=exp.batch_size_l)
     if eps*L_bound < output_delta/np.sqrt(2):
         eps_greatest = eps
-        print('eps', eps, 'lower bound')
-        print('L bound', L_bound)
-        #print('new largest epsilon is ', eps_greatest)
+        #print('eps', eps, 'lower bound')
+        #print('L bound', L_bound)
         eps_min = eps
     else:
-        print('eps', eps, 'NOT lower bound')
-        print('L bound', L_bound)
+        #print('eps', eps, 'NOT lower bound')
+        #print('L bound', L_bound)
         eps_max = eps
+t1 = time.time()
 print('largest epsilon is', eps_greatest)
+print('computation time:', t1-t0)
 
 
 ###############################################################################

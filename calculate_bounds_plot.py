@@ -7,9 +7,9 @@ import torch.nn as nn
 import my_config
 
 #import tiny as exp
-import mnist as exp
+#import mnist as exp
 #import cifar10 as exp
-#import alexnet as exp
+import alexnet as exp
 #import vgg16 as exp
 
 # plot settings
@@ -121,7 +121,7 @@ ax.legend(loc=(.48,.1), fontsize=20)
 ax.tick_params(axis='both', labelsize=20)
 ax.yaxis.get_offset_text().set_fontsize(20)
 pp.xlabel('input perturbation size ($\epsilon$)', fontsize=30)
-pp.ylabel('local Lipschitz bound', fontsize=30)
+pp.ylabel('Lipschitz bound', fontsize=30)
 pp.tight_layout()
 #pp.savefig(fig_png)
 pp.savefig(fig_pdf)
