@@ -8,9 +8,16 @@ data/mnist/*
 data/cifar10/*
 data/alexnet/*
 data/vgg16/*
+# example images
 !data/mnist/*.png
 !data/cifar10/*.png
 !data/alexnet/*.png
 !data/vgg16/*.png
+# saved checkpoints from training
 !data/mnist/ckpt_99.ckpt
 !data/cifar10/ckpt_499.ckpt
+# saved computational results (some take a long time to run)
+!data/mnist/*.npz
+!data/cifar10/*.npz
+!data/alexnet/*.npz
+!data/vgg16/*.npz
