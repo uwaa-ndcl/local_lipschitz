@@ -25,8 +25,8 @@ eps_min_bisect = 1.7e-8 # new
 eps_max_bisect = 1.9e-8 # new
 step_size_grad = 1e-4
 
-main_dir = '/data/vgg16/'
-imagenet_dir = '/data/imagenet/'
+main_dir = 'data/vgg16/'
+imagenet_dir = 'data/imagenet/'
 
 # function to transform imagenet images
 transform = transforms.Compose([

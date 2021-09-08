@@ -11,9 +11,9 @@ import network_bound
 import utils
 
 #import tiny as exp
-import mnist as exp
+#import mnist as exp
 #import cifar10 as exp
-#import alexnet as exp
+import alexnet as exp
 #import vgg16 as exp
 
 def relu(x):
@@ -23,8 +23,8 @@ def relu(x):
 device = my_config.device 
 
 # which bounds to compute?
-compute_rand =   1
-compute_grad =   1
+compute_rand =   0
+compute_grad =   0
 compute_global = 1
 compute_local =  1
 
@@ -88,6 +88,7 @@ if compute_grad:
 # upper bound, global
 if compute_global:
     print('\nCALCULATING UPPER BOUNDS, GLOBAL')
+    t0 = time.time()
     lip_glob = [None]*n_layers
     for j, layer in enumerate(layers):
         if isinstance(layer, nn.Sequential):
@@ -118,6 +119,8 @@ if compute_global:
 
         else:
             print('ERROR: THIS TYPE OF LAYER HAS NOT BEEN SUPPORTED YET')
+    t1 = time.time()
+    print('global bound compute time:', t1-t0, 'seconds')
 
     np.savez(global_npz, bound=lip_glob)
 
@@ -134,7 +137,7 @@ if compute_local:
         bound[i] = network_bound.network_bound(net, x0, eps_i, batch_size=exp.batch_size_l)
 
     t1 = time.time()
-    print('total time:', t1-t0, 'seconds')
+    print('local bounds total combpute time:', t1-t0, 'seconds')
     print('average time per epsilon', (t1-t0)/len(eps), 'seconds')
 
     np.savez(local_npz, eps=eps, bound=bound)
