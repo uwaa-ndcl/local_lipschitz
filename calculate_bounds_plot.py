@@ -8,8 +8,8 @@ import my_config
 
 #import tiny as exp
 #import mnist as exp
-#import cifar10 as exp
-import alexnet as exp
+import cifar10 as exp
+#import alexnet as exp
 #import vgg16 as exp
 
 # plot settings

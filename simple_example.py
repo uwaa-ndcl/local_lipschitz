@@ -50,9 +50,15 @@ x0 = x0.to(my_config.device)
 eps = 10**-3
 batch_size = 10**3
 
+# calculate global Lipschitz bound
+layer_bounds = network_bound.global_bound(net, x0)
+glob_bound = np.prod(layer_bounds)
+print('GLOBAL LIPSCHITZ UPPER BOUND')
+print('bound:', glob_bound)
+
 # calculate local Lipschitz bound
-bound = network_bound.network_bound(net, x0, eps, batch_size=batch_size)
-print('LOCAL LIPSCHITZ UPPER BOUND')
+bound = network_bound.local_bound(net, x0, eps, batch_size=batch_size)
+print('\nLOCAL LIPSCHITZ UPPER BOUND')
 print('epsilon:', eps)
 print('bound:', bound)
 
@@ -66,15 +72,15 @@ top2, ind_top2 = torch.topk(y0.flatten(), 2)
 delta = (top2[0]-top2[1]).item()
 for i in range(n_runs):
     eps_i = (eps_max + eps_min)/2
-    bound = network_bound.network_bound(net, x0, eps_i, batch_size=batch_size)
+    bound = network_bound.local_bound(net, x0, eps_i, batch_size=batch_size)
     if eps_i*bound < delta/np.sqrt(2):
         eps_greatest = eps_i
         #print('eps', eps_i, 'lower bound')
-        print('epsilon:', eps_i)
+        #print('epsilon:', eps_i)
         eps_min = eps_i
     else:
         #print('eps', eps_i, 'NOT lower bound')
         #print('bound', bound)
         eps_max = eps_i
 
-#print('largest epsilon for lower bound is', eps_greatest)
+print('largest epsilon for lower bound is', eps_greatest)

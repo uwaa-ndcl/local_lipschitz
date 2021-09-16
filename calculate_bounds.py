@@ -12,9 +12,9 @@ import utils
 
 #import tiny as exp
 #import mnist as exp
-#import cifar10 as exp
+import cifar10 as exp
 #import alexnet as exp
-import vgg16 as exp
+#import vgg16 as exp
 
 def relu(x):
     return (x>0)*x
@@ -89,39 +89,9 @@ if compute_grad:
 if compute_global:
     print('\nCALCULATING UPPER BOUNDS, GLOBAL')
     t0 = time.time()
-    lip_glob = [None]*n_layers
-    for j, layer in enumerate(layers):
-        if isinstance(layer, nn.Sequential):
-            affine_func = layer[0] # should be nn.Conv2d or nn.Linear
-            spec_norm, V = utils.get_RAD(affine_func, X[j].shape, d=None, r_squared=None)
-            lip_glob[j] = spec_norm.item()
-
-        elif isinstance(layer, (nn.Conv2d, nn.Linear)):
-            spec_norm, V = utils.get_RAD(layer, X[j].shape, d=None, r_squared=None)
-            lip_glob[j] = spec_norm.item()
-
-        elif isinstance(layer, nn.MaxPool2d):
-            # lipschitz constant
-            lip_glob[j] = utils.max_pool_lip(layer)
-
-        elif isinstance(layer, nn.AdaptiveAvgPool2d):
-            # this layer does nothing when the input is 3x224x224
-            lip_glob[j] = 1
-
-        elif isinstance(layer, nn.Flatten):
-            lip_glob[j] = 1
-
-        elif isinstance(layer, nn.Dropout):
-            lip_glob[j] = 1
-
-        elif isinstance(layer, nn.ReLU):
-            lip_glob[j] = 1
-
-        else:
-            print('ERROR: THIS TYPE OF LAYER HAS NOT BEEN SUPPORTED YET')
+    lip_glob = network_bound.global_bound(net, x0)
     t1 = time.time()
     print('global bound compute time:', t1-t0, 'seconds')
-
     np.savez(global_npz, bound=lip_glob)
 
 
@@ -134,7 +104,7 @@ if compute_local:
     t0 = time.time()
     bound = [None]*n_bound
     for i, eps_i in enumerate(tqdm(eps)):
-        bound[i] = network_bound.network_bound(net, x0, eps_i, batch_size=exp.batch_size_l)
+        bound[i] = network_bound.local_bound(net, x0, eps_i, batch_size=exp.batch_size_l)
 
     t1 = time.time()
     print('local bounds total combpute time:', t1-t0, 'seconds')

@@ -5,7 +5,55 @@ import utils
 def relu(x):
     return (x>0)*x
 
-def network_bound(net, x0, eps, batch_size=32):
+
+def global_bound(net, x0):
+    '''
+    calculate the global Lipschitz bound of a feedforward neural network
+    '''
+
+    # iterate over each layer and get the output of each function
+    layers = net.layers
+    n_layers = len(layers)
+    X = [x0]
+    for i in range(n_layers):
+        f = layers[i]
+        X.append(f(X[-1]))
+    lip = [None]*n_layers
+
+    for i, layer in enumerate(layers):
+        if isinstance(layer, nn.Sequential):
+            affine_func = layer[0] # should be nn.Conv2d or nn.Linear
+            spec_norm, V = utils.get_RAD(affine_func, X[i].shape, d=None, r_squared=None)
+            lip[i] = spec_norm.item()
+
+        elif isinstance(layer, (nn.Conv2d, nn.Linear)):
+            spec_norm, V = utils.get_RAD(layer, X[i].shape, d=None, r_squared=None)
+            lip[i] = spec_norm.item()
+
+        elif isinstance(layer, nn.MaxPool2d):
+            # lipschitz constant
+            lip[i] = utils.max_pool_lip(layer)
+
+        elif isinstance(layer, nn.AdaptiveAvgPool2d):
+            # this layer does nothing when the input is 3x224x224
+            lip[i] = 1
+
+        elif isinstance(layer, nn.Flatten):
+            lip[i] = 1
+
+        elif isinstance(layer, nn.Dropout):
+            lip[i] = 1
+
+        elif isinstance(layer, nn.ReLU):
+            lip[i] = 1
+
+        else:
+            print('ERROR: THIS TYPE OF LAYER HAS NOT BEEN SUPPORTED YET')
+
+    return lip
+
+
+def local_bound(net, x0, eps, batch_size=32):
     '''
     calculate the local Lipschitz bound of a feedforward neural network
     '''

@@ -8,10 +8,10 @@ import my_config
 import utils
 import network_bound
 
-#import mnist as exp
+import mnist as exp
 #import cifar10 as exp
 #import alexnet as exp
-import vgg16 as exp
+#import vgg16 as exp
 
 # setup
 device = my_config.device 
@@ -58,7 +58,7 @@ output_delta = (top2_true[0]-top2_true[1]).item() # minimum change in output to 
 pows = [-300, -100, -10, -7, -5, -3, -1, 0, 10, 1000]
 eps = [10**pow for pow in pows]
 i = 4 # starting guess on the index of eps
-L_bound = network_bound.network_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
+L_bound = network_bound.local_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
 if eps[i]*L_bound < output_delta/np.sqrt(2):
 	eps_min = eps[i]
 	i += 1
@@ -71,7 +71,7 @@ else:
 # step 2: determine the lower/upper bound if the guess was an upper/lower bound, respectively 
 if search_dir=='forward':
     while i<len(eps):
-        L_bound = network_bound.network_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
+        L_bound = network_bound.local_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
         if eps[i]*L_bound < output_delta/np.sqrt(2):
             eps_min = eps[i]
             i += 1
@@ -84,7 +84,7 @@ if search_dir=='forward':
 
 elif search_dir=='backward':
     while i>=0:
-        L_bound = network_bound.network_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
+        L_bound = network_bound.local_bound(net, x0, eps[i], batch_size=exp.batch_size_l)
         if eps[i]*L_bound < output_delta/np.sqrt(2):
             eps_min = eps[i]
             break
@@ -103,7 +103,7 @@ elif search_dir=='backward':
 n_runs = 10
 for i in range(n_runs):
     eps = (eps_max + eps_min)/2
-    L_bound = network_bound.network_bound(net, x0, eps, batch_size=exp.batch_size_l)
+    L_bound = network_bound.local_bound(net, x0, eps, batch_size=exp.batch_size_l)
     if eps*L_bound < output_delta/np.sqrt(2):
         eps_greatest = eps
         #print('eps', eps, 'lower bound')
