@@ -17,12 +17,8 @@ batch_size_l = 10000
 batch_size_rand = 10**4
 batch_size_sn = 100
 batch_size_ball = 10000
-#eps_min_net = .001
-#eps_max_net = 2
 eps_min = .001
 eps_max = 2
-eps_min_bisect = 4.1e-3 # new
-eps_max_bisect = 4.5e-3 # new
 step_size_grad = 1e-4
 main_dir = 'data/cifar10/'
 

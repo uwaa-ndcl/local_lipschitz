@@ -10,19 +10,12 @@ net_name = 'vgg16'
 plot_name = 'VGG-16'
 
 # this is only for computation and plotting
-#batch_size_l = 200
 batch_size_l = 180
 batch_size_rand = 200
 batch_size_sn = 100
 batch_size_ball = 100
-
 eps_min = .001
 eps_max = 3
-
-#eps_min_bisect = 1.4e-7 # old
-#eps_max_bisect = 1.6e-7 # old
-eps_min_bisect = 1.7e-8 # new
-eps_max_bisect = 1.9e-8 # new
 step_size_grad = 1e-4
 
 main_dir = 'data/vgg16/'
