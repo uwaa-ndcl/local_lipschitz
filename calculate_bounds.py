@@ -65,17 +65,17 @@ print('layer-by-layer v. one-shot error:', torch.norm(X[-1] - outputs).item())
 # lower bound, random
 if compute_rand:
     t0 = time.time()
-    print('\nCALCULATING LOWER BOUNDS, RANDOM')
+    print('\nLOWER LIPSCHITZ BOUNDS, RANDOM')
     #lb = utils.lower_bound_random_many(net, x0, eps_lb_net, batch_size=exp.batch_size_lb)
     bound = utils.lower_bound_random_many(net, x0, eps, n_test=10**5, batch_size=exp.batch_size_rand)
     np.savez(rand_npz, eps=eps, bound=bound)
     t1 = time.time()
-    print('time to compute random bounds', t1-t0, 'seconds')
+    print('time to compute:', t1-t0, 'seconds')
 
 ###############################################################################
 # lower bound, gradient
 if compute_grad:
-    print('\nCALCULATING LOWER BOUNDS, GRADIENT')
+    print('\nLOWER LIPSCHITZ BOUNDS, GRADIENT')
     x0.requires_grad = True
     #utils.lower_bound_FGSM(net, x0, eps_lb, lb_net_grad_npz)
     #utils.lower_bound_adv(net, x0, eps_lb, lb_net_grad_npz)
@@ -87,18 +87,20 @@ if compute_grad:
 ###############################################################################
 # upper bound, global
 if compute_global:
-    print('\nCALCULATING UPPER BOUNDS, GLOBAL')
+    print('\nUPPER LIPSCHITZ BOUNDS, GLOBAL')
     t0 = time.time()
     lip_glob = network_bound.global_bound(net, x0)
     t1 = time.time()
-    print('global bound compute time:', t1-t0, 'seconds')
+    bound_glob = np.prod(lip_glob)
+    print('bound:', bound_glob)
+    print('compute time:', t1-t0, 'seconds')
     np.savez(global_npz, bound=lip_glob)
 
 
 ###############################################################################
 # upper bound, local
 if compute_local:
-    print('\nCALCULATING UPPER BOUNDS, LOCAL')
+    print('\nUPPER LIPSCHITZ BOUNDS, LOCAL')
 
     # loop over input perturbation sizes
     t0 = time.time()
@@ -107,7 +109,7 @@ if compute_local:
         bound[i] = network_bound.local_bound(net, x0, eps_i, batch_size=exp.batch_size_l)
 
     t1 = time.time()
-    print('local bounds total combpute time:', t1-t0, 'seconds')
-    print('average time per epsilon', (t1-t0)/len(eps), 'seconds')
+    print('total compute time:', t1-t0, 'seconds')
+    print('average compute time per epsilon', (t1-t0)/len(eps), 'seconds')
 
     np.savez(local_npz, eps=eps, bound=bound)

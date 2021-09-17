@@ -8,8 +8,8 @@ import my_config
 import utils
 import network_bound
 
-import mnist as exp
-#import cifar10 as exp
+#import mnist as exp
+import cifar10 as exp
 #import alexnet as exp
 #import vgg16 as exp
 
@@ -43,7 +43,7 @@ bound_global = np.prod(bound_layer_global)
 ###############################################################################
 # LOCAL LIPSCHITZ LOWER BOUND
 # get largest and next largest elements of output (pre-softmax)
-print('\nLOCAL LOWER BOUND')
+print('\nLOWER ADVERSARIAL BOUND, LOCAL')
 
 t0 = time.time()
 x0.requires_grad = True 
@@ -114,29 +114,29 @@ for i in range(n_runs):
         #print('L bound', L_bound)
         eps_max = eps
 t1 = time.time()
-print('largest epsilon is', eps_greatest)
-print('computation time:', t1-t0)
+print('bound:', eps_greatest)
+print('compute time:', t1-t0)
 
 
 ###############################################################################
 # GLOBAL LIPSCHITZ LOWER BOUND
-print('\nGLOBAL LOWER BOUND')
+print('\nLOWER ADVERSARIAL BOUND, GLOBAL')
 # L >= eps_out/eps_in
 # eps_in >= eps_out/L
 #eps_max_class_global = output_delta/bound_global # old, wrong
 eps_max_class_global = (output_delta+np.sqrt(2))/bound_global
-print('global lower epsilon bound:', eps_max_class_global)
+print('bound:', eps_max_class_global)
 
 ###############################################################################
 # FGSM
-print('\nFGSM UPPER BOUND')
+print('\nUPPER ADVERSARIAL BOUND, FGSM')
 
 eps_list = np.arange(0,100,.01)
 for eps in eps_list:
     ind_fgsm, pert_norm = utils.fgsm_new(net, x0, eps)
     if ind_fgsm != ind1_true:
-        print('minimum epsilon', eps)
-        print('minimum perturbation', pert_norm)
+        #print('minimum epsilon', eps)
+        print('bound:', pert_norm)
         break
 
 if eps == eps_list[-1]:
@@ -144,6 +144,7 @@ if eps == eps_list[-1]:
 
 ###############################################################################
 # gradient ascent
+print('\nUPPER ADVERSARIAL BOUND, GRADIENT ASCENT')
 # evaluate the nominal input
 #x0.requires_grad = True
 #y0 = net(x0)
@@ -163,9 +164,8 @@ elif net_name=='alexnet':
 elif net_name=='vgg16':
     step_size = .01 # ind=3, step_size=.01
 
-# do gradient ascent with respect to all classes to find the smallest
-# perturbation that causes the classification to change
-fgsm = 1
+# use only the sign of the gradient perturbation?
+fgsm = 0
 
 pert_min = np.inf
 for ind in tqdm(range(y0.numel())):
@@ -173,18 +173,17 @@ for ind in tqdm(range(y0.numel())):
     if (pert_size_i is not None) and (pert_size_i<pert_min):
         pert_min = pert_size_i
         ind_min = ind_new
-        print('new pert', pert_min)
-        print('its', its_i)
+        #print('new pert', pert_min)
+        #print('its', its_i)
 
-# print
-#pert_min = utils.adv_asc_class_change_batch(net, x0, step_size)
-print('\nADVERSARIAL UPPER BOUND')
-print('pert:', pert_min)
+print('bound:', pert_min)
+
+# adversarial example info
 #print('grad:', grad)
-print('old class, best:', exp.classes[ind1_true])
-print('old class, 2nd best:', exp.classes[ind2_true])
-print('ind:', ind_new)
-print('new class:', exp.classes[ind_new])
+print('nominal input, class 1:', exp.classes[ind1_true])
+print('nominal input, class 2:', exp.classes[ind2_true])
+print('adversarial example, class 1:', ind_new)
+print('adversarial example, class 1 name:', exp.classes[ind_new])
 #print('iterations:', its)
 
 """

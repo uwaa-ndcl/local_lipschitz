@@ -1,8 +1,3 @@
-
-    # a list for each layer where each list item is a logical negation of the
-    # diagonal elements of the D matrix in other words, each element of that
-    # vector is True if the input elements are zero and False if the input
-    # elements are not zero  
 import os
 from PIL import Image
 import torch
