@@ -110,7 +110,7 @@ def net():
     # load checkpoint file
     net = LeNet()
     ckpt_file = os.path.join(main_dir, 'ckpt_99.ckpt')
-    net.load_state_dict(torch.load(ckpt_file)['net'])
+    net.load_state_dict(torch.load(ckpt_file, map_location=my_config.device)['net'])
 
     # create a list of the network's layers 
     #relu = torch.nn.functional.relu
