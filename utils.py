@@ -982,3 +982,72 @@ def fgsm_new(net, x0, eps):
     #print(y_new)
 
     return ind_new, pert_norm
+
+
+def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
+    '''
+    "Basic Iterative" Fast Gradient Sign Method
+    Adversarial Examples in the Physical World (2017)
+    Kurakin, Goodfellow, Bengio
+
+    clip: clip values in array X into acceptable range
+    '''
+
+    # nominal input and output
+    x0.requires_grad = True
+    y0 = net(x0)
+    ind_true = torch.topk(y0.flatten(), 1)[1].item()
+
+    # loss criterion
+    #criterion = nn.MSELoss()
+    #criterion = nn.L1Loss()
+    #criterion = nn.BCELoss()
+    #target = torch.zeros(1,10).to(device)
+    #target[0,ind_true] = 1
+
+    #criterion = nn.CrossEntropyLoss()
+    criterion = nn.NLLLoss()
+    target = torch.tensor([ind_true], dtype=torch.long).to(device)
+
+    # run input through the function
+    x_new = x0
+    x_new.requires_grad = True
+    print('min element of x0', torch.min(x0))
+    print('max element of x0', torch.max(x0))
+    y_new = net(x_new)
+    ind_new = torch.topk(y_new.flatten(), 1)[1].item()
+
+    # exit condition used in the paper
+    #n_iter = int(np.min([eps+4, 1.25*eps]))
+
+    # go until the classification changes
+    n_iters = 0
+    while ind_true == ind_new:
+        # loss
+        loss = criterion(y_new, target)
+        net.zero_grad()
+        loss.backward()
+
+        # get gradient and create perturbation
+        grad = x_new.grad.data
+        pert = eps*torch.sign(grad).detach()
+
+        # update input x
+        x_new = x_new + pert
+
+        if clip:
+            x_new = x_new.clip(lower, upper)
+
+        x_new = x_new.detach() # FIX THIS!!!
+        x_new.requires_grad = True
+        #x_new = x_new.clip(0,1)
+        y_new = net(x_new)
+        ind_new = torch.topk(y_new.flatten(), 1)[1].item()
+
+        n_iters += 1
+
+    # total perturbation
+    pert_total = x_new - x0 
+    pert_norm = torch.norm(pert_total).item()
+
+    return ind_new, pert_norm, n_iters
