@@ -7,73 +7,36 @@ import torchvision.transforms as transforms
 import torchattacks
 from PIL import Image
 
-import utils
 import my_config
+import utils
 
 #import tiny as exp 
 import mnist as exp
 
-def normalize(x):
-    '''
-    x = (x-mean)/std
-    '''
-    return (x-exp.train_mean[0])/exp.train_std[0]
-
-def unnormalize(x):
-    '''
-    put x back to [0,1] interval
-    '''
-    return x*exp.train_std[0] + exp.train_mean[0]
-
-# the same network as the original except normalization is done as a network operation
-class LeNet01(nn.Module):
-
-    def __init__(self):
-        super(LeNet01, self).__init__()
-        self.conv1 = net.conv1
-        self.conv2 = net.conv2
-
-        self.maxpool = net.maxpool
-
-        self.fc1 = net.fc1
-        self.fc2 = net.fc2
-        self.fc3 = net.fc3
-
-    def forward(self, x):
-        x = (x-exp.train_mean[0])/exp.train_std[0]
-        x = F.relu(self.conv1(x))
-        x = self.maxpool(x)
-        x = F.relu(self.conv2(x))
-        x = self.maxpool(x)
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x
-
 # original network
+# WHY DOESNT IT WORK DOING UNNORMALIZE WITH TRANSFORMS?
 net = exp.net()
 x0_nml = exp.x0
-x0_01 = unnormalize(x0_nml)
+x0_01_lambda = exp.unnormalize(x0_nml)
+x0_01_transforms = exp.unnormalize_transforms(x0_nml)
+x0_01_transforms2 = exp.unnormalize_transforms2(x0_nml)
+print('try', torch.norm(x0_01_transforms - x0_01_lambda))
+x0_01 = x0_01_lambda
 
 # network with inputs on interval [0,1]
-net_01 = LeNet01()
+net_01 = exp.net()
+net_01 = nn.Sequential(exp.normalize, net)
+#net_01.layers.insert(0, exp.transform_normalize)
 y0_nml = net(x0_nml)
 y0_01 = net_01(x0_01)
 print('nml v 01 for y err:', torch.norm(y0_01 - y0_nml))
 
 # utils function
 print('\nUTILS FUNCTION')
-xa_01, diffs_01 = utils.cw_attack(net_01, x0_01)
-xa_nml = normalize(xa_01)
-y_nml = net(xa_nml)
-x0_nml_vec = torch.flatten(x0_nml, start_dim=1, end_dim=3)
-xa_nml_vec = torch.flatten(xa_nml, start_dim=1, end_dim=3)
-diff_nrm = torch.norm(xa_nml_vec - x0_nml_vec, dim=1)
-max_diff_nrm = torch.max(diff_nrm).item()
-print('successful attack input diffs (normalized):', diff_nrm)
-print('max successful attack input diff (normalized):', max_diff_nrm)
+x_attack_success_nml, attack_classes, diffs, min_diff = utils.cw_attack(exp, c=1e0, kappa=0, steps=1000, lr=0.01)
+print('attack classes:', attack_classes)
+print('n successful attacks:', len(diffs))
+print('min attack diff:', min_diff) 
 
 # true index
 print('\nMANUAL METHOD')
@@ -86,7 +49,7 @@ labels = torch.linspace(0, n-1, n, dtype=torch.int64)
 #print('labels:', labels)
 
 # run the attack
-attack = torchattacks.CW(net_01, c=1e0, kappa=0, steps=1000, lr=0.01)
+attack = torchattacks.CW(net_01, c=1e0, kappa=0, steps=3000, lr=0.01)
 attack_images_01 = attack(x0_01, labels)
 Y_01 = net_01(attack_images_01)
 attack_classes = torch.topk(Y_01, 1)[1].flatten().tolist()
@@ -103,7 +66,7 @@ for i,success_ind in enumerate(success_inds):
     print('attack ind:', success_ind)
     print('attack class:', attack_classes[success_ind])
     xa_01 = attack_images_01[success_ind,:,:,:]
-    xa_nml = normalize(xa_01)
+    xa_nml = exp.normalize(xa_01)
     print('true class:', class_true)
 
     print('\nUNNORMALIZED [0,1] VALUES')

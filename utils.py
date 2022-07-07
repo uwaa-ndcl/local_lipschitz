@@ -1054,42 +1054,47 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
     return ind_new, pert_norm, n_iters
 
 
-def cw_attack(net, x0, c=1e0, kappa=0, steps=1000, lr=0.01):
+def cw_attack(exp, c=1e0, kappa=0, steps=1000, lr=0.01):
     '''
     apply the adversarial attack from Carlini & Wagner, 2017
     using the torchattacks python package
-
-    net must accept inputs with elements on the interval [0,1], and the input x0
-    must be on the interval [0,1]
     '''
 
-    # true index
-    y0 = net(x0)
-    class_true = torch.topk(y0.flatten(), 1)[1].item()
+    # get net and nominal input
+    net_nml = exp.net()
+    net_01 = exp.net()
+    x0_nml = exp.x0
+
+    # make new network with embedded normalize function
+    net_01 = nn.Sequential(exp.normalize, net_nml)
+    x0_01 = exp.unnormalize(x0_nml)
+
+    # true classification
+    y0_01 = net_01(x0_01)
+    class_true = torch.topk(y0_01.flatten(), 1)[1].item()
     n = 10
     labels = torch.linspace(0,n-1,n,dtype=torch.int64)
 
     # run the attack
-    attack = torchattacks.CW(net, c=c, kappa=kappa, steps=steps, lr=lr)
-    x_attack = attack(x0, labels)
-    y_attack = net(x_attack)
+    attack = torchattacks.CW(net_01, c=c, kappa=kappa, steps=steps, lr=lr)
+    x_attack = attack(x0_01, labels)
+    y_attack = net_01(x_attack)
     attack_classes = torch.topk(y_attack, 1)[1].flatten().tolist()
-    print('attack classes:', attack_classes)
     success_bool = np.not_equal(attack_classes, class_true)
     success_inds = np.where(success_bool)[0]
     x_attack_success = x_attack[success_inds,:,:,:]
     n_found = len(success_inds)
-    print('n successful attacks:', n_found)
 
-    # iterate over all successful attacks
-    diffs = np.full(n_found, np.nan)
-    for i,success_ind in enumerate(success_inds):
-        print('attack ind:', success_ind)
-        print('attack class:', attack_classes[success_ind])
-        xa = x_attack[success_ind,:,:,:]
-        print('true class:', class_true)
-        diff = torch.norm(xa - x0)
-        #print('diff ([0,1] inputs):', diff)
-        diffs[i] = diff
+    # normalize the attacks and get min attack norm
+    if n_found > 0:
+        x_attack_success_nml = exp.normalize(x_attack_success)
+        y_attack_success_nml = net_nml(x_attack_success_nml)
+        x0_nml_vec = torch.flatten(x0_nml, start_dim=1, end_dim=3)
+        x_attack_success_nml_vec = torch.flatten(x_attack_success_nml, start_dim=1, end_dim=3)
+        diffs = torch.norm(x_attack_success_nml_vec - x0_nml_vec, dim=1)
+        min_diff = torch.min(diffs).item()
 
-    return x_attack_success, diffs
+        return x_attack_success_nml, attack_classes, diffs, min_diff
+
+    else:
+        return [], [], []

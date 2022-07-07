@@ -21,35 +21,6 @@ eps_max = 7
 step_size_grad = 1e-4
 main_dir = 'data/mnist/'
 
-# see:
-# https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
-# https://github.com/kuangliu/pytorch-cifar/blob/master/models/lenet.py
-class LeNet(nn.Module):
-
-    def __init__(self):
-        super(LeNet, self).__init__()
-        self.conv1 = nn.Conv2d(1,6,5)
-        self.conv2 = nn.Conv2d(6,16,5)
-
-        self.maxpool = nn.MaxPool2d(2) 
-
-        self.fc1 = nn.Linear(16*4*4,120) # note cifar10 is 16*5*5
-        self.fc2 = nn.Linear(120,84)
-        self.fc3 = nn.Linear(84,10)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = self.maxpool(x)
-        x = F.relu(self.conv2(x))
-        x = self.maxpool(x)
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x
-
-
 def mnist_mean_std():
     '''
     get mean and variance of a dataset 
@@ -89,6 +60,15 @@ train_mean = (0.1307,)
 train_std = (0.3081,)
 
 # dataset
+normalize = transforms.Normalize(train_mean[0], train_std[0])
+
+# note: unnormalization is "x+s + u" which can be written in normalization form as
+# (x - (-u/s))/(1/s)
+#unnormalize = lambda x: x*0.3081 + 0.1307
+unnormalize = lambda x: x*train_std[0] + train_mean[0]
+unnormalize_transforms = transforms.Normalize(-0.1307/0.3081, 1/0.3081)
+unnormalize_transforms2 = transforms.Normalize(-train_mean[0]/train_std[0], 1/train_std[0])
+
 transform_train = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(train_mean, train_std),
@@ -98,6 +78,36 @@ transform_test = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(train_mean, train_std),
 ])
+
+# see:
+# https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
+# https://github.com/kuangliu/pytorch-cifar/blob/master/models/lenet.py
+class LeNet(nn.Module):
+
+    def __init__(self):
+        super(LeNet, self).__init__()
+        self.conv1 = nn.Conv2d(1,6,5)
+        self.conv2 = nn.Conv2d(6,16,5)
+
+        self.maxpool = nn.MaxPool2d(2)
+
+        self.fc1 = nn.Linear(16*4*4,120) # note cifar10 is 16*5*5
+        self.fc2 = nn.Linear(120,84)
+        self.fc3 = nn.Linear(84,10)
+
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = self.maxpool(x)
+        x = F.relu(self.conv2(x))
+        x = self.maxpool(x)
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
 
 # nominal input
 filename = os.path.join(main_dir, '8.png')

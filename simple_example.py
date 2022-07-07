@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torchvision.transforms as transforms
 
 import network_bound
 import my_config
@@ -29,6 +30,10 @@ class MyNet(nn.Module):
 
         return x
 
+# these functions are only needed to run C&W attacks
+normalize = transforms.Normalize(0.0, 1.0)
+unnormalize = lambda x: x*1.0 + 0.0
+
 # create network
 net = MyNet()
 net.to(my_config.device)
@@ -44,6 +49,7 @@ net.layers = [net.conv1, relu,
 
 # nominal input
 x0 = torch.rand(1,1,28,28)
+print(x0)
 x0 = x0.to(my_config.device)
 
 # input perturbation size and batch size
