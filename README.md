@@ -13,7 +13,7 @@ Trevor Avant & Kristi A. Morgansen
 
 * Python 3 (we used version 3.9), Pytorch (we used version 1.8)
 
-* the following non-standard python packages: torch, torchvision, numpy, PIL, scipy, tqdm, matplotlib
+* the following non-standard python packages: torch, torchvision, numpy, PIL, scipy, tqdm, matplotlib, torchattacks
 
 
 ## using GPU or CPU
