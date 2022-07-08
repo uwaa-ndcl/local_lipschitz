@@ -1013,8 +1013,8 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
     # run input through the function
     x_new = x0
     x_new.requires_grad = True
-    print('min element of x0', torch.min(x0))
-    print('max element of x0', torch.max(x0))
+    #print('min element of x0', torch.min(x0))
+    #print('max element of x0', torch.max(x0))
     y_new = net(x_new)
     ind_new = torch.topk(y_new.flatten(), 1)[1].item()
 
@@ -1022,8 +1022,12 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
     #n_iter = int(np.min([eps+4, 1.25*eps]))
 
     # go until the classification changes
-    n_iters = 0
+    i = 0
+    n_cutoff = 5000 # if no adversarial example found after this many iterations, abort
     while ind_true == ind_new:
+        if i > n_cutoff:
+            break
+
         # loss
         loss = criterion(y_new, target)
         net.zero_grad()
@@ -1045,13 +1049,13 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
         y_new = net(x_new)
         ind_new = torch.topk(y_new.flatten(), 1)[1].item()
 
-        n_iters += 1
+        i += 1
 
     # total perturbation
     pert_total = x_new - x0 
     pert_norm = torch.norm(pert_total).item()
 
-    return ind_new, pert_norm, n_iters
+    return ind_new, pert_norm, i
 
 
 def cw_attack(exp, c=1e0, kappa=0, steps=1000, lr=0.01):
