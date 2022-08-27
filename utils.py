@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import torchattacks
+from PIL import Image
 
 import my_config
 device = my_config.device
@@ -944,12 +945,13 @@ def adv_rand_class_change(net, x0, eps, n_samp=10000):
         return min_pert
 
 
-def fgsm_new(net, x0, eps):
+def fgsm(net, x0, eps):
     '''
     https://pytorch.org/tutorials/beginner/fgsm_tutorial.html
     '''
 
     # nominal input and output
+    net.eval()
     x0.requires_grad = True
     y0 = net(x0)
     ind_true = torch.topk(y0.flatten(), 1)[1].item()
@@ -985,16 +987,26 @@ def fgsm_new(net, x0, eps):
     return ind_new, pert_norm
 
 
-def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
+def ifgsm(net, x0, eps, max_steps=5000, clip=False, lower=0, upper=0):
     '''
     "Basic Iterative" Fast Gradient Sign Method
+
     Adversarial Examples in the Physical World (2017)
     Kurakin, Goodfellow, Bengio
+    https://arxiv.org/abs/1607.02533
 
+    Code is based on the fgsm() method in this file.
+
+    net: network
+    x0: nominal input
+    eps: amount to scale the gradient
     clip: clip values in array X into acceptable range
+    lower: lower value of clip
+    upper: upper value of clip
     '''
 
     # nominal input and output
+    net.eval()
     x0.requires_grad = True
     y0 = net(x0)
     ind_true = torch.topk(y0.flatten(), 1)[1].item()
@@ -1012,9 +1024,8 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
 
     # run input through the function
     x_new = x0
-    x_new.requires_grad = True
-    #print('min element of x0', torch.min(x0))
-    #print('max element of x0', torch.max(x0))
+    #x_new = x0.detach().clone()
+    #x_new.requires_grad = True
     y_new = net(x_new)
     ind_new = torch.topk(y_new.flatten(), 1)[1].item()
 
@@ -1023,9 +1034,8 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
 
     # go until the classification changes
     i = 0
-    n_cutoff = 5000 # if no adversarial example found after this many iterations, abort
     while ind_true == ind_new:
-        if i > n_cutoff:
+        if i > max_steps:
             break
 
         # loss
@@ -1058,47 +1068,186 @@ def ifgsm(net, x0, eps, clip=False, lower=0, upper=0):
     return ind_new, pert_norm, i
 
 
-def cw_attack(exp, c=1e0, kappa=0, steps=1000, lr=0.01):
+def cw_attack(exp,LEARNING_RATE=5e-2,BINARY_SEARCH_STEPS=9, MAX_ITERATIONS=10000, ABORT_EARLY=True,TARGETED=False,CONFIDENCE=0,INITIAL_CONST=1e-3,PRINT_PROG=False):
     '''
-    apply the adversarial attack from Carlini & Wagner, 2017
-    using the torchattacks python package
+    adversarial attack from Carlini & Wagner 
+
+    I created this function by taking the original (TensorFlow) code and
+    converting it to PyTorch. I tried to keep the code structure and variable
+    names as close to the original as possible.
+
+    https://arxiv.org/abs/1608.04644
+
+    https://github.com/carlini/nn_robust_attacks/blob/master/l2_attack.py
     '''
 
-    # get net and nominal input
-    net_nml = exp.net()
-    net_01 = exp.net()
-    x0_nml = exp.x0
+    # nominal input image and output
+    x0 = exp.x0
+    x0 = x0.to(device)
+    x0_np = x0.detach().cpu().numpy()
+    net = exp.net()
+    net = net.to(device)
+    net.eval()
+    #for p in net.parameters(): p.requires_grad = False
+    y0 = net(x0)
 
-    # make new network with embedded normalize function
-    net_01 = nn.Sequential(exp.normalize, net_nml)
-    x0_01 = exp.unnormalize(x0_nml)
+    # determine min and max elements of array vector by creating a black and white
+    # image and running it through the transform function
+    bw = np.zeros((x0.shape[2],x0.shape[3],x0.shape[1])) # for PIL: width, height, channels
+    bw[0,0,:] = 255 # make one pixel white
+    bw = bw.astype(np.uint8)
+    if bw.shape[2]==1:
+        bw = bw[:,:,0]
+    bw = Image.fromarray(bw)
+    bw = exp.transform(bw)
+    bw = bw.numpy()
+    boxmin = np.min(bw)
+    boxmax = np.max(bw)
 
-    # true classification
-    y0_01 = net_01(x0_01)
-    class_true = torch.topk(y0_01.flatten(), 1)[1].item()
-    n = 10
-    labels = torch.linspace(0,n-1,n,dtype=torch.int64)
+    batch_size=1
 
-    # run the attack
-    attack = torchattacks.CW(net_01, c=c, kappa=kappa, steps=steps, lr=lr)
-    x_attack = attack(x0_01, labels)
-    y_attack = net_01(x_attack)
-    attack_classes = torch.topk(y_attack, 1)[1].flatten().tolist()
-    success_bool = np.not_equal(attack_classes, class_true)
-    success_inds = np.where(success_bool)[0]
-    x_attack_success = x_attack[success_inds,:,:,:]
-    n_found = len(success_inds)
+    repeat = BINARY_SEARCH_STEPS >= 10
 
-    # normalize the attacks and get min attack norm
-    if n_found > 0:
-        x_attack_success_nml = exp.normalize(x_attack_success)
-        y_attack_success_nml = net_nml(x_attack_success_nml)
-        x0_nml_vec = torch.flatten(x0_nml, start_dim=1, end_dim=3)
-        x_attack_success_nml_vec = torch.flatten(x_attack_success_nml, start_dim=1, end_dim=3)
-        diffs = torch.norm(x_attack_success_nml_vec - x0_nml_vec, dim=1)
-        min_diff = torch.min(diffs).item()
+    I_KNOW_WHAT_I_AM_DOING_AND_WANT_TO_OVERRIDE_THE_PRESOFTMAX_CHECK = False
 
-        return x_attack_success_nml, attack_classes, diffs, min_diff
+    #image_size, num_channels, num_labels = x0.image_size, model.num_channels, model.num_labels
+    class0 = torch.argmax(y0).item()
+    image_size = x0.shape[2]
+    num_channels = x0.shape[1]
+    num_labels = y0.shape[1]
+    boxmul = (boxmax - boxmin) / 2.
+    boxplus = (boxmin + boxmax) / 2.
+    shape = (batch_size,num_channels,image_size,image_size)
 
-    else:
-        return [], [], []
+    # create label corresponding to class of nominal output
+    labs = torch.zeros(batch_size,num_labels).to(device)
+    labs[0,class0] = 1
+
+    # the resulting image, tanh'd to keep bounded from boxmin to boxmax
+    boxmul = (boxmax - boxmin) / 2.
+    boxplus = (boxmin + boxmax) / 2.
+
+    # convert to tanh-space
+    imgs = np.arctanh((x0_np - boxplus) / boxmul * 0.999999)
+
+    modifier = torch.zeros(shape, dtype=torch.float32, device=device, requires_grad=True)
+
+    def compare(x,y):
+        if not isinstance(x, (float, int, np.int64)):
+            x = np.copy(x)
+            if TARGETED:
+                x[y] -= CONFIDENCE
+            else:
+                x[y] += CONFIDENCE
+            x = np.argmax(x)
+        if TARGETED:
+            return x == y
+        else:
+            return x != y
+
+    # set the lower and upper bounds accordingly
+    lower_bound = np.zeros(batch_size)
+    CONST = np.ones(batch_size)*INITIAL_CONST
+    upper_bound = np.ones(batch_size)*1e10
+
+    # the best l2, score, and image attack
+    o_bestl2 = [1e10]*batch_size
+    o_bestscore = [-1]*batch_size
+    o_bestattack = [np.zeros(imgs[0].shape)]*batch_size
+
+    for outer_step in range(BINARY_SEARCH_STEPS):
+        if PRINT_PROG:
+            print(o_bestl2)
+        # completely reset adam's internal state
+        optimizer = torch.optim.Adam([modifier], lr=LEARNING_RATE)
+        batch = imgs[:batch_size]
+        batchlab = labs[:batch_size].cpu().numpy()
+
+        bestl2 = [1e10]*batch_size
+        bestscore = [-1]*batch_size
+
+        # the last iteration (if we run many steps) repeat the search once
+        if repeat == True and outer_step == BINARY_SEARCH_STEPS-1:
+            CONST = upper_bound
+
+        prev = np.inf
+        for iteration in range(MAX_ITERATIONS):
+            # perform the attack 
+            timg = torch.from_numpy(batch).to(device)
+            newimg = torch.tanh(modifier + timg) * boxmul + boxplus
+            output = net(newimg)
+            l2dist = torch.sum(torch.square(newimg-(torch.tanh(timg) * boxmul + boxplus)),[1,2,3])
+
+            real = torch.sum((labs)*output, 1)
+            other = torch.max((1-labs)*output - (labs*10000), 1)[0]
+
+            zero = torch.tensor([0]).to(device)
+            if TARGETED:
+                # if targetted, optimize for making the other class most likely
+                loss1 = torch.maximum(zero, other-real+CONFIDENCE)
+            else:
+                # if untargeted, optimize for making this class least likely.
+                loss1 = torch.maximum(zero, real-other+CONFIDENCE)
+
+            # sum up the losses
+            loss2 = torch.sum(l2dist)
+            loss1 = torch.sum(batch_size*loss1)
+            loss = loss1+loss2
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+
+            l2s = l2dist.detach().cpu().numpy()
+            scores = output.detach().cpu().numpy()
+            nimg = newimg.detach().cpu().numpy()
+            l = loss.item()
+            
+            if np.all(scores>=-.0001) and np.all(scores <= 1.0001):
+                if np.allclose(np.sum(scores,axis=1), 1.0, atol=1e-3):
+                    if not self.I_KNOW_WHAT_I_AM_DOING_AND_WANT_TO_OVERRIDE_THE_PRESOFTMAX_CHECK:
+                        raise Exception("The output of model.predict should return the pre-softmax layer. It looks like you are returning the probability vector (post-softmax). If you are sure you want to do that, set attack.I_KNOW_WHAT_I_AM_DOING_AND_WANT_TO_OVERRIDE_THE_PRESOFTMAX_CHECK = True")
+            
+            # print out the losses every 10%
+            if iteration%(MAX_ITERATIONS//10) == 0:
+                if PRINT_PROG:
+                    print(iteration,(round(loss.item(),3),round(loss1.item(),3),round(loss2.item(),3)))
+
+            # check if we should abort search if we're getting nowhere.
+            if ABORT_EARLY and iteration%(MAX_ITERATIONS//10) == 0:
+                if l > prev*.9999:
+                    break
+                prev = l
+
+            # adjust the best result found so far
+            for e,(l2,sc,ii) in enumerate(zip(l2s,scores,nimg)):
+                #print(compare(sc, np.argmax(batchlab[e])))
+                if l2 < bestl2[e] and compare(sc, np.argmax(batchlab[e])):
+                    bestl2[e] = l2
+                    bestscore[e] = np.argmax(sc)
+                if l2 < o_bestl2[e] and compare(sc, np.argmax(batchlab[e])):
+                    o_bestl2[e] = l2
+                    o_bestscore[e] = np.argmax(sc)
+                    o_bestattack[e] = ii
+            
+
+        # adjust the constant as needed
+        for e in range(batch_size):
+            if compare(bestscore[e], np.argmax(batchlab[e])) and bestscore[e] != -1:
+                # success, divide const by two
+                upper_bound[e] = min(upper_bound[e],CONST[e])
+                if upper_bound[e] < 1e9:
+                    CONST[e] = (lower_bound[e] + upper_bound[e])/2
+            else:
+                # failure, either multiply by 10 if no solution found yet
+                #          or do binary search with the known upper bound
+                lower_bound[e] = max(lower_bound[e],CONST[e])
+                if upper_bound[e] < 1e9:
+                    CONST[e] = (lower_bound[e] + upper_bound[e])/2
+                else:
+                    CONST[e] *= 10
+
+    # return the best solution found
+    o_bestl2 = np.array(o_bestl2)
+    x_adv = torch.from_numpy(o_bestattack[0]).float().to(device)
+    x_adv = torch.unsqueeze(x_adv,0)
+    return x_adv

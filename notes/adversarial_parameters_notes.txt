@@ -1,0 +1,122 @@
+These notes show the affects of changing parameters the parameters of different methods to compute adversarial bounds.
+
+
+###############################################################################
+C&W
+###############################################################################
+
+MNIST
+learning rate 1e-1: pert  32.551, confidence=1: pert 32.551 
+learning rate 5e-2: pert   3.445, confidence=1: pert  3.448 
+learning rate 1e-2: pert   3.455, confidence=1: pert  3.495 
+learning rate 5e-3: pert  32.551, confidence=1: pert 32.551  
+learning rate 1e-3: pert  32.551, confidence=1: pert  
+
+CIFAR-10
+learning rate 1e-1: pert  1.750, confidence=1: pert  1.927 
+learning rate 5e-2: pert  1.655, confidence=1: pert  1.849
+learning rate 1e-2: pert  1.628, confidence=1: pert  1.803
+learning rate 5e-3: pert  1.635, confidence=1: pert  1.802 
+learning rate 1e-3: pert  1.664, confidence=1: pert  1.806 
+learning rate 1e-4: pert  1.659, confidence=1: pert  1.799 
+learning rate 1e-5: pert 50.248, confidence=1: pert 50.248 
+
+ALEXNET
+learning rate 1e0:  pert  39.485
+learning rate 5e-1: pert   6.058, confidence=1: pert  56.416
+learning rate 1e-1: pert   5.601, confidence=1: pert   7.040
+learning rate 5e-2: pert   5.620, confidence=1: pert   6.355
+learning rate 1e-2: pert 345.512, confidence=1: pert 345.512
+learning rate 1e-3: pert 345.512
+
+VGG-16
+learning rate 1e-1: pert 3.109, confidence=1: pert 3.174 
+learning rate 1e-2: pert 1.695, confidence=1: pert 1.811 
+learning rate 1e-3: pert 1.674, confidence=1: pert 1.804 
+learning rate 1e-4: pert 1.717, confidence=1: pert 1.888 
+
+
+###############################################################################
+FGSM
+###############################################################################
+
+MNIST
+eps 1e0 : 27.1
+eps 9e-1: 24.4 
+eps 8e-1: 21.7
+eps 7e-1: 19.0 
+eps 6.7e-1: 18.2
+eps 6.6e-1: 17.9
+eps 6.55e-1: 17.8
+eps 6.54e-1: 17.7
+eps 6.53e-1: none
+eps 6.52e-1: none
+eps 6e-1: none
+eps 5e-1: none
+eps 1e-1: none
+
+CIFAR-10
+eps 1e0 : 55.4
+eps 5e-1: 27.7
+eps 3e-1: 16.6
+eps 2e-1: 11.1
+eps 1.7e-1: 9.4
+eps 1.69e-1: 9.4
+eps 1.68e-1: none 
+eps 1.6e-1: none
+eps 1e-1: none
+
+ALEXNET
+eps 1e0 : 388.0
+eps 1e-1: 38.8
+eps 5e-2: 19.4
+eps 3e-2: 11.6
+eps 2.5e-2: 9.7
+eps 2.3e-2: 8.9
+eps 2.2e-2: 8.5
+eps 2e-2: none
+eps 1e-2: none
+
+VGG16
+eps 1e0 : 388
+eps 5e-1: 193 
+eps 3e-1: 116
+eps 2e-1: 78
+eps 1.5e-1: 58
+eps 1.4e-1: 54
+eps 1.3e-1: 50
+eps 1.2e-1: 47
+eps 1.1e-1: none
+eps 1e-1: none
+
+
+###############################################################################
+IFGSM (10000 max steps)
+###############################################################################
+
+MNIST
+eps 1e-4: 5.4
+eps 5e-5: 5.38178
+eps 3e-5: 5.36881
+eps 2e-5: none
+eps 1e-5: none
+
+CIFAR-10
+eps 1e-4: 4.4
+eps 5e-5: 4.36738
+eps 2e-5: 4.37051
+eps 1e-5: none
+
+ALEXNET
+eps 1e-5: 5.0
+eps 5e-6: 5.0
+eps 3e-6: 4.97
+eps 2e-6: 4.97
+eps 1e-6: none 
+
+VGG-16
+eps 1e-5: 5.1 
+eps 5e-6: 5.1
+eps 3e-6: 5.08819
+eps 2e-6: 5.08388 
+eps 1e-6: none 

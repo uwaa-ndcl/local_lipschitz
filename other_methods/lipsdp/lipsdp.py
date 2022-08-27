@@ -39,7 +39,7 @@ net.eval()
 main_dir = exp.main_dir
 filename = os.path.join(main_dir, '8.png')
 x0 = Image.open(filename)
-x0 = mnist.transform_test(x0)
+x0 = mnist.transform(x0)
 x0 = torch.unsqueeze(x0, 0)
 x0 = x0.to(device)
 x0.requires_grad= False

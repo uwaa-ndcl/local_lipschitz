@@ -108,7 +108,7 @@ transform_train = transforms.Compose([
     transforms.Normalize(train_mean, train_std),
 ])
 
-transform_test = transforms.Compose([
+transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(train_mean, train_std),
 ])
@@ -116,7 +116,7 @@ transform_test = transforms.Compose([
 # nominal input
 filename = os.path.join(main_dir, 'dog4.png')
 x0 = Image.open(filename)
-x0 = transform_test(x0)
+x0 = transform(x0)
 x0 = torch.unsqueeze(x0, 0)
 x0 = x0.to(my_config.device)
 

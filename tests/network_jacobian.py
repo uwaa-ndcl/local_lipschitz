@@ -1,4 +1,6 @@
-'''get the jacobian of a full network'''
+'''
+get the jacobian of a full network
+'''
 
 import os
 from PIL import Image
@@ -7,10 +9,10 @@ import torch
 import torch.nn as nn
 from torchvision.transforms import ToPILImage
 
-import lip.network.utils as utils
-import lip.directories as dirs
-from lip import my_config
-from lip.network import mnist, cifar10, alexnet
+import utils as utils
+import dirs
+import my_config
+import mnist, cifar10, alexnet
 
 # setup
 device = my_config.device
@@ -22,7 +24,7 @@ net.eval()
 # load image
 filename = os.path.join(main_dir, '8.png')
 x0 = Image.open(filename)
-x0 = mnist.transform_test(x0)
+x0 = mnist.transform(x0)
 img = ToPILImage()(x0)
 img.save('/home/trevor/Downloads/xtrans.png')
 x0 = torch.unsqueeze(x0, 0)

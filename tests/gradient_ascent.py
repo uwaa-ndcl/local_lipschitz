@@ -22,7 +22,7 @@ net.eval()
 #filename = os.path.join(main_dir, '2.png')
 filename = os.path.join(main_dir, '8.png')
 x = Image.open(filename)
-x = mnist.transform_test(x)
+x = mnist.transform(x)
 x = torch.unsqueeze(x, 0)
 x = x.to(device)
 

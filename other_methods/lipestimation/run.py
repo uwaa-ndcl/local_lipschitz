@@ -5,10 +5,10 @@ import torchvision
 
 import numpy as np
 
-from lip import my_config
+import my_config
 
-from lip.third_party.lip_estimation.lipschitz_utils import *
-from lip.third_party.lip_estimation.max_eigenvalue import k_generic_power_method
+from other_methods.lipestimation.lipschitz_utils import *
+from other_methods.lipestimation.max_eigenvalue import k_generic_power_method
 
 #import lip.third_party.lip_estimation.models.custom_network as custom_network
 #import lip.third_party.lip_estimation.models
@@ -46,7 +46,7 @@ def save_singular(net):
 
 exp = 'mnist'
 if exp == 'mnist':
-    import lip.network.mnist as exp
+    import mnist as exp
     save_dir = 'mnist_trialll'
     main_dir = exp.main_dir
     net = exp.net()

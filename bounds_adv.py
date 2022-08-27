@@ -14,7 +14,7 @@ device = my_config.device
 #layers = net.layers
 #n_layers = len(layers)
 
-def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compute_fgsm=True, compute_ifgsm=True, compute_gradasc=True):
+def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compute_fgsm=True, compute_ifgsm=True, compute_gradasc=True, compute_cw=True):
 
     ###############################################################################
     # NETWORK AND SETUP
@@ -41,6 +41,20 @@ def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compu
     bound_layer_global = dat['bound']
     bound_global = np.prod(bound_layer_global)
 
+    # get nominal output
+    y0 = net(x0)
+    top2_true, ind_top2_true = torch.topk(y0.flatten(), 2)
+    ind1_true = ind_top2_true[0].item()
+    ind2_true = ind_top2_true[1].item()
+
+    # bounds, some may not be filled
+    bound_local = []
+    bound_global = []
+    bound_fgsm = []
+    bound_ifgsm = []
+    bound_gradasc = []
+    bound_cw = []
+
     ###############################################################################
     # LOCAL LIPSCHITZ LOWER BOUND
     # get largest and next largest elements of output (pre-softmax)
@@ -49,10 +63,6 @@ def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compu
 
         t0 = time.time()
         x0.requires_grad = True 
-        y0 = net(x0)
-        top2_true, ind_top2_true = torch.topk(y0.flatten(), 2)
-        ind1_true = ind_top2_true[0].item()
-        ind2_true = ind_top2_true[1].item()
         output_delta = (top2_true[0]-top2_true[1]).item() # minimum change in output to change classification
 
         # step 1: start with a guess,
@@ -135,10 +145,50 @@ def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compu
     # FGSM
     if compute_fgsm:
         print('\nUPPER ADVERSARIAL BOUND, FGSM')
+        
+        # use bisection to find lowest working epsilon
+        n_step = 10 # number of bisection steps
+        if net_name=='mnist':
+            eps_lo = 6e-1
+            eps_hi = 7e-1
+        elif net_name=='cifar10':
+            eps_lo = 1e-1
+            eps_hi = 2e-1
+        elif net_name=='alexnet':
+            eps_lo = 2e-2
+            eps_hi = 3e-2
+        elif net_name=='vgg16':
+            eps_lo = 1e-1
+            eps_hi = 2e-1
+        
+        i = 0
+        eps = (eps_hi + eps_lo)/2
+        bound_fgsm = np.nan
+        while i<n_step:
+            ind_fgsm, pert_norm = utils.fgsm(net, x0, eps)
 
+            # epsilon works, make it smaller
+            if ind_fgsm != ind1_true:
+                bound_fgsm = pert_norm
+                eps_hi = eps
+                eps = (eps+eps_lo)/2
+
+            # epsilon doesn't work, make it bigger
+            else:
+                eps_lo = eps
+                eps = (eps+eps_hi)/2
+
+            i += 1
+
+        if np.isnan(eps):
+            print('no fgsm perturbation found')
+        else:
+            print('bound:', pert_norm)
+
+        '''
         eps_list = np.arange(0,100,.01)
         for eps in eps_list:
-            ind_fgsm, pert_norm = utils.fgsm_new(net, x0, eps)
+            ind_fgsm, pert_norm = utils.fgsm(net, x0, eps)
             if ind_fgsm != ind1_true:
                 #print('minimum epsilon', eps)
                 print('bound:', pert_norm)
@@ -149,26 +199,30 @@ def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compu
             pert_norm = np.nan
 
         bound_fgsm = pert_norm 
+        '''
+
 
     ###############################################################################
     # I-FGSM
     if compute_ifgsm:
-        print('\nUPPER ADVERSARIAL BOUND, I-FGSM')
+        print('\nUPPER ADVERSARIAL BOUND, IFGSM')
 
-        eps_list = np.arange(0,100,.0001)
-        for eps in eps_list:
-            print('current epsilon:', eps)
-            ind_ifgsm, pert_norm, n_iters = utils.ifgsm(net, x0, eps, clip=False, lower=0, upper=0)
-            if ind_ifgsm != ind1_true:
-                #print('minimum epsilon', eps)
-                print('bound:', pert_norm)
-                break
+        if net_name=='mnist':
+            eps = 1e-4
+        elif net_name=='cifar10':
+            eps = 1e-4
+        elif net_name=='alexnet':
+            eps = 3e-6
+        elif net_name=='vgg16':
+            eps = 5e-6
 
-        if eps == eps_list[-1]:
-            print('no perturbation found')
-            pert_norm = np.nan
+        ind_ifgsm, pert_norm, n_iters = utils.ifgsm(net, x0, eps, clip=False, lower=0, upper=0)
+        if ind_ifgsm != ind1_true:
+            bound_ifgsm = pert_norm
+        else:
+            print('no ifgsm perturbation found')
+            bound_ifgsm = np.nan
 
-        bound_ifgsm = pert_norm
 
     ###############################################################################
     # GRADIENT ASCENT
@@ -216,7 +270,35 @@ def compute_bounds(exp, save_npz, compute_local=True, compute_global=True, compu
         print('adversarial example, class 1 name:', exp.classes[ind_new])
         #print('iterations:', its)
 
-    np.savez(save_npz, bound_local=bound_local, bound_global=bound_global, bound_fgsm=bound_fgsm, bound_ifgsm=bound_ifgsm, bound_gradasc=bound_gradasc)
+    ###############################################################################
+    # C&W
+    if compute_cw:
+        print('\nUPPER ADVERSARIAL BOUND, C&W')
+
+        # gradient ascent
+        if net_name=='mnist':
+            lr = 5e-2
+        elif net_name=='cifar10':
+            lr = 1e-2 
+        elif net_name=='alexnet':
+            lr = 1e-1 
+        elif net_name=='vgg16':
+            lr = 1e-3
+
+        # run the attack
+        x_adv = utils.cw_attack(exp,LEARNING_RATE=lr,CONFIDENCE=0,PRINT_PROG=False)
+
+        # analyze the results
+        y0 = net(x0)
+        class0 = torch.argmax(y0).item()
+        y_adv = net(x_adv)
+        class_adv = torch.argmax(y_adv).item()
+        bound_cw = torch.norm(x0-x_adv).item()
+        print('original class:', class0)
+        print('new class:', class_adv)
+        print('bound:', bound_cw) 
+
+    np.savez(save_npz, bound_local=bound_local, bound_global=bound_global, bound_fgsm=bound_fgsm, bound_ifgsm=bound_ifgsm, bound_gradasc=bound_gradasc, bound_cw=bound_cw)
     """
     ###############################################################################
     # random

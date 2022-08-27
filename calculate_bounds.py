@@ -1,7 +1,6 @@
 import os
 import time
 import numpy as np
-from PIL import Image
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -11,9 +10,9 @@ import network_bound
 import utils
 
 #import tiny as exp
-import mnist as exp
+#import mnist as exp
 #import cifar10 as exp
-#import alexnet as exp
+import alexnet as exp
 #import vgg16 as exp
 
 def relu(x):

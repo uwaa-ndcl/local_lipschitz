@@ -2,7 +2,9 @@ import os
 from PIL import Image
 import torch
 import torch.nn as nn
+import torchvision
 from torchvision import models, transforms
+from torchvision.models import AlexNet_Weights
 
 import my_config
 
@@ -44,7 +46,7 @@ with open(classes_file) as f:
 
 def net():
 
-    net = models.alexnet(pretrained=True)
+    net = models.alexnet(weights=AlexNet_Weights.IMAGENET1K_V1)
     net = net.eval()
 
     # create a list of layers of the network

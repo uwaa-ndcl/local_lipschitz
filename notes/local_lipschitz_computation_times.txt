@@ -1,0 +1,21 @@
+Computation times for the local Lipschitz bound for various networks.
+
+MNIST (100 trials)
+min time 0.07100868225097656
+max time 0.07850170135498047
+avg time 0.07178632736206055
+
+CIFAR10 (100 trials)
+min time 0.43953776359558105
+max time 0.44974303245544434
+avg time 0.4423564553260803
+
+ALEXNET (100 trials)
+min time 16.432312965393066
+max time 16.570045709609985
+avg time 16.513451642990113
+
+VGG16 (10 trials)
+min time 3735.986071586609
+max time 3738.350440979004
+avg time 3737.096160507202

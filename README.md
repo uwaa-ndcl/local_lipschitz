@@ -13,12 +13,12 @@ Trevor Avant & Kristi A. Morgansen
 
 * Python 3 (we used version 3.9), Pytorch (we used version 1.8)
 
-* the following non-standard python packages: torch, torchvision, numpy, PIL, scipy, tqdm, matplotlib, torchattacks
+* the following non-standard python packages: torch, torchvision, numpy, PIL, scipy, tqdm, matplotlib
 
 
 ## using GPU or CPU
 
-This code can be run on either a CUDA-supported GPU, or on a CPU. This designation is set by uncommenting `device = 'cuda'` or `device = 'cpu'` in the `my_config.py` file.
+This code can be run on either a CPU or CUDA-supported GPU. If you have a CUDA-supported GPU, it will automatically be used. If you want to manually select which device to use, you can uncomment `device = 'cuda'` or `device = 'cpu'` in the `my_config.py` file.
 
 
 ## simulations
@@ -47,10 +47,14 @@ A minimal working example showing how to compute the local Lipschitz bound of a 
 
 ## comparison with other methods
 
-* lip estimation (Scaman et al., 2018): Run `lipestimation/custom.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `custom_get_sv.py` with the same network uncommented.
+* lip estimation (Scaman et al., 2018): Run `other_methods/lipestimation/custom.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `custom_get_sv.py` with the same network uncommented.
 
 * LipSDP (Fazlyab et al., 2019): Run `lipsdp/run.py`. Note the code provided by the authors of LipSDP requires Matlab and the [Matlab Engine API for Python](https://www.mathworks.com/help/matlab/matlab-engine-for-python.html).
 
+* LipSDP (Chordal): You must have Julia and Mosek (free for students) installed. Run `$ julia other_methods/chordal-lipsdp/scripts/install_pkgs.jl` to install required packages. Then run `$ julia -i other_methods/chordal-lipsdp/scripts/run_nnet.jl --nnet !!!`. Then in the Julia prompt run `soln, lipconst = solveLipschitz(ffnet, weight_scales, :lipsdp)`. Once that command completes, the solution can then be found by entering `soln` in the Julia prompt. 
+see: https://github.com/AntonXue/chordal-lipsdp
+
+* lipMIP: First, you need to install Gurobi (free for students) and the `gurobipy` Python package.
 
 ## extra
 

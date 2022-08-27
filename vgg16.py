@@ -3,6 +3,7 @@ from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
+from torchvision.models import VGG16_Weights
 
 import my_config
 
@@ -45,7 +46,7 @@ with open(classes_file) as f:
 
 def net():
 
-    net = models.vgg16(pretrained=True)
+    net = models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
     net = net.eval()
 
     # create a list of layers of the network
