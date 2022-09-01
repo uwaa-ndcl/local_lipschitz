@@ -93,7 +93,8 @@ def get_RAD(func, input_shape, d=None, r_squared=None, n_iter=100):
     func: function, either nn.Conv2d or nn.Linear
     input_shape for conv (shape of input array): =  batch, chan, H, W
     d: the diagonal elements of D, can also be None which means D=identity matrix
-    r_squared: the diagonal elements of R^2, can be None which means R=identity matrix
+    r_squared: the diagonal elements of R^2, can be None which means R is the
+               identity matrix
     n_iter: number of iterations
     '''
 
@@ -691,6 +692,7 @@ def lower_bound_asc(fun, x, eps_lb, step_size=1e-4):
     n_y = torch.numel(y)
 
     # gradient ascent
+    # take a bunch of steps in the gradient direction
     n_step = 10**3
     xc = x
     eps_step = np.full(n_step, np.nan)
@@ -701,8 +703,8 @@ def lower_bound_asc(fun, x, eps_lb, step_size=1e-4):
         pert = J0.view(x.shape)
         xc = xc + step_size*pert # "xc += pert" throws an error
         yc = fun(xc)
-        eps_step[i] = torch.norm(x - xc)
-        lb_step[i] = torch.norm(y - yc)/torch.norm(x - xc)
+        eps_step[i] = torch.linalg.vector_norm(x - xc)
+        lb_step[i] = torch.linalg.vector_norm(y - yc)/torch.linalg.vector_norm(x - xc)
 
     # get largest lower bound for each epsilon
     n_eps = len(eps_lb)
@@ -1063,7 +1065,7 @@ def ifgsm(net, x0, eps, max_steps=5000, clip=False, lower=0, upper=0):
 
     # total perturbation
     pert_total = x_new - x0 
-    pert_norm = torch.norm(pert_total).item()
+    pert_norm = torch.linalg.vector_norm(pert_total).item()
 
     return ind_new, pert_norm, i
 

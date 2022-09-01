@@ -46,7 +46,7 @@ def save_singular(net):
 
 exp = 'mnist'
 if exp == 'mnist':
-    import mnist as exp
+    import networks.mnist as exp
     save_dir = 'mnist_trialll'
     main_dir = exp.main_dir
     net = exp.net()

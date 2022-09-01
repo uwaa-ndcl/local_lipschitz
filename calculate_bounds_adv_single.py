@@ -5,10 +5,10 @@ import torch
 import my_config
 import bounds_adv
 
-#import mnist as exp
-#import cifar10 as exp
-#import alexnet as exp
-import vgg16 as exp
+#import networks.mnist as exp
+#import networks.cifar10 as exp
+#import networks.alexnet as exp
+import networks.vgg16 as exp
 
 # go once
 save_npz = os.path.join(exp.main_dir, 'adv_bounds.npz') 

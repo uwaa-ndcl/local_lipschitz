@@ -13,10 +13,10 @@ import my_config
 import bounds_adv
 import network_bound 
 
-import mnist as exp
-#import cifar10 as exp
-#import alexnet as exp
-#import vgg16 as exp
+import networks.mnist as exp
+#import networks.cifar10 as exp
+#import networks.alexnet as exp
+#import networks.vgg16 as exp
 
 device = my_config.device
 net = exp.net()

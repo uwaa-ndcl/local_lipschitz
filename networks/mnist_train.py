@@ -7,7 +7,7 @@ import my_config
 import mnist
 
 device = my_config.device
-mnist_dir = exp.main_dir
+mnist_dir = mnist.main_dir
 
 # data sets
 n_workers = 8

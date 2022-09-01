@@ -7,5 +7,4 @@ else:
     device = 'cpu'
 
 # manual
-#device = 'cuda'
-device = 'cpu'
+#device = 'cpu'

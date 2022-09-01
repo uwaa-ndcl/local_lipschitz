@@ -2,7 +2,7 @@ import os
 import torch
 
 import my_config
-import alexnet
+from networks import alexnet
 import utils
 
 

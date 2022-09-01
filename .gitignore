@@ -4,8 +4,10 @@
 *.jpg
 *.npz
 *.mat
+*.nnet
 
 # data sets for different neural networks
+data/compnet/*
 data/tiny/*
 data/mnist/*
 data/cifar10/*

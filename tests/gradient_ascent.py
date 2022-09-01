@@ -4,10 +4,9 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-import lip.directories as dirs
-from lip import my_config
-import lip.network.utils as utils
-from lip.network import mnist
+import my_config
+import utils
+from networks import mnist
 
 # setup
 device = my_config.device 

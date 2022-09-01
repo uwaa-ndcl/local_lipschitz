@@ -5,7 +5,7 @@ import torch
 
 from old_code import utils
 from timeit import default_timer as timer
-import tiny
+from networks import tiny
 
 
 #layer_configs = [(20, 20, 1), ]

@@ -6,11 +6,12 @@ import torch.nn as nn
 
 import my_config
 
-#import tiny as exp
-#import mnist as exp
-import cifar10 as exp
-#import alexnet as exp
-#import vgg16 as exp
+import networks.tiny as exp
+#import networks.compnet as exp
+#import networks.mnist as exp
+#import networks.cifar10 as exp
+#import networks.alexnet as exp
+#import networks.vgg16 as exp
 
 # plot settings
 pp.rc('text', usetex=True)

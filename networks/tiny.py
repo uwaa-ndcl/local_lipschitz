@@ -13,13 +13,17 @@ batch_size_l = 10**4
 batch_size_lb = 10**7
 batch_size_sn = 100
 batch_size_ball = 10**5
-eps_min = .1
-eps_max = 10
+batch_size_rand = 10**4
+#eps_min = .1
+#eps_max = 10
+eps_min = 1e-5
+eps_max = 1e-3
 step_size_grad = 1e-4
 main_dir = 'data/tiny/'
 
 # input size
-n = 3
+n_input = 3
+n_output = n_input
 
 # set random seed for reproducibility (for both torch.rand and torch.nn.Linear)
 torch.manual_seed(0)
@@ -36,12 +40,12 @@ class MyNet(nn.Module):
         #self.fc3 = nn.Linear(5,5)
 
         
-        self.fc1 = nn.Linear(n,n)
+        self.fc1 = nn.Linear(n_input,n_input)
         self.fc1.weight.data.copy_(A)
         self.fc1.bias.data.copy_(b)
 
-        self.fc2 = nn.Linear(n,n)
-        self.fc2.weight.data.copy_(torch.eye(n))
+        self.fc2 = nn.Linear(n_input,n_input)
+        self.fc2.weight.data.copy_(torch.eye(n_input))
         self.fc2.bias.data.fill_(0.0)
 
     def forward(self, x):
@@ -56,7 +60,7 @@ class MyNet(nn.Module):
         return x
 
 # nominal input
-x0 = torch.rand(1,n)
+x0 = torch.rand(1,n_input)
 #print('x0', x0)
 x0 = x0.to(my_config.device)
 x0 = x0 + torch.tensor([-1,2,2]).to(my_config.device) # so the output of the first layer won't be all 0

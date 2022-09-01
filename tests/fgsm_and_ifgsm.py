@@ -8,18 +8,22 @@ import torch.nn.functional as F
 import my_config
 import utils
 
-#import tiny as exp 
-import mnist as exp
-#import cifar10 as exp
-#import alexnet as exp
-#import vgg16 as exp
+#import networks.tiny as exp 
+import networks.mnist as exp
+#import networks.cifar10 as exp
+#import networks.alexnet as exp
+#import networks.vgg16 as exp
 
 device = my_config.device 
+
+#torch.set_default_dtype = torch.float64
 
 net = exp.net()
 net = net.to(device)
 net.eval()
 x0 = exp.x0
+#net = net.double()
+#x0 = x0.double()
 x0_clone = x0.detach().clone()
 x0_clone2 = x0.detach().clone()
 
@@ -36,7 +40,7 @@ print('ind true:', ind_true)
 
 # test fgsm
 #eps = .66 # used in MNIST iteration in other file
-eps = 3e-1
+eps = 7e-1
 ind_new, pert_norm = utils.fgsm(net, x0, eps)
 print('\nFGSM')
 print('ind new:', ind_new)

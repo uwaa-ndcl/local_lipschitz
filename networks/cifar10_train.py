@@ -8,7 +8,7 @@ import my_config
 import cifar10
 
 device = my_config.device
-cifar10_dir = exp.main_dir
+cifar10_dir = cifar10.main_dir
 
 # datasets
 n_workers = 8
@@ -19,7 +19,7 @@ trainloader = torch.utils.data.DataLoader(
     trainset, batch_size=batch_size, shuffle=True, num_workers=n_workers)
 
 testset = torchvision.datasets.CIFAR10(
-    root=cifar10_dir, train=False, download=True, transform=cifar10.transform_test)
+    root=cifar10_dir, train=False, download=True, transform=cifar10.transform)
 testloader = torch.utils.data.DataLoader(
     testset, batch_size=batch_size, shuffle=False, num_workers=n_workers)
 

@@ -15,11 +15,11 @@ import utils
 # setup
 device = my_config.device 
 
-#import tiny as exp 
-import mnist as exp
-#import cifar10 as exp
-#import alexnet as exp
-#import vgg16 as exp
+#import networks.tiny as exp 
+import networks.mnist as exp
+#import networks.cifar10 as exp
+#import networks.alexnet as exp
+#import networks.vgg16 as exp
 
 # first things
 x0 = exp.x0

@@ -12,7 +12,7 @@ from torchvision.transforms import ToPILImage
 import utils as utils
 import dirs
 import my_config
-import mnist, cifar10, alexnet
+from networks import mnist, cifar10, alexnet
 
 # setup
 device = my_config.device

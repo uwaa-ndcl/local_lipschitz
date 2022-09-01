@@ -38,8 +38,8 @@ weight_3 = np.random.rand(2,4)
 weights = [weight_1, weight_2, weight_3]
 '''
 # neural network
-import mnist as exp
-#import cifar10 as exp # memory error
+import networks.mnist as exp
+#import networks.cifar10 as exp # memory error
 net = exp.net()
 net = net.to(device)
 net.eval()

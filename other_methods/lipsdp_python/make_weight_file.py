@@ -1,21 +1,38 @@
+'''
+generate the weight file using this command then run
+
+$ python other_methods/lipsdp_python/solve_sdp.py --form neuron --weight-path data/compnet/lipsdp/weights.mat
+'''
+import os
+import sys
+import pathlib
+import numpy as np
+from scipy.io import savemat
+import subprocess
 import torch.nn as nn
 
-from other_methods.chordal_lipsdp import writeNNet
-
 import utils
+import my_config
 
-import networks.tiny as exp
 #import networks.compnet as exp
+import networks.tiny as exp
 #import networks.mnist as exp
+#import networks.cifar10 as exp # memory error
 
+device = my_config.device 
+
+# files
+save_dir = os.path.join(exp.main_dir, 'lipsdp/')
+weight_file = os.path.join(save_dir, 'weights.mat')
+
+#
 net = exp.net()
-net = net.eval()
+net = net.to(device)
+net.eval()
 x0 = exp.x0
-
-# iterate through network
+x0.requires_grad = False
 layers = net.layers
 n_layers = len(layers)
-print('LAYERS:')
 
 # get all inputs and outputs
 layer_input = []
@@ -27,26 +44,24 @@ for layer in layers:
     layer_input.append(inpt)
     layer_output.append(outpt)
 
-#
 weights = []
 biases = []
 
 for i,layer in enumerate(layers):
     # affine before ReLU
     if (i+1<n_layers) and isinstance(layer, nn.Linear) and isinstance(layers[i+1], nn.ReLU):
-        weights.append(layers[i].weight)
-        biases.append(layers[i].bias)
+        weights.append(layers[i].weight.detach().cpu().numpy().astype(np.float64))
+        biases.append(layers[i].bias.detach().cpu().numpy().astype(np.float64))
         print('affine')
 
     # sole affine - must be the last layer for the LipSDP implementation!
     elif isinstance(layer, nn.Linear):
-        weights.append(layers[i].weight)
-        biases.append(layers[i].bias)
+        weights.append(layers[i].weight.detach().cpu().numpy().astype(np.float64))
+        biases.append(layers[i].bias.detach().cpu().numpy().astype(np.float64))
         print('sole affine')
         if i != n_layers-1:
             print('ERROR: SOLE AFFINE FUNCTION MUST BE THE LAST LAYER!!!')
         
-
     # ReLU after affine
     elif (i-1>=0) and isinstance(layer, nn.ReLU) and isinstance(layers[i-1], nn.Linear):
         print('ReLU')
@@ -54,7 +69,9 @@ for i,layer in enumerate(layers):
     # conv
     elif isinstance(layer, nn.Conv2d):
         W = utils.conv_matrix(layer, layer_input[i].shape)
+        W = W.detach().cpu().numpy().astype(np.float64)
         b = utils.conv_bias_vector(layer, layer_output[i].shape)
+        b = b.detach().cpu().numpy().astype(np.float64)
         weights.append(W)
         biases.append(b)
         print('conv2D')
@@ -80,14 +97,9 @@ for i,layer in enumerate(layers):
     else:
         print('other layer - NOT IMPLEMENTED!!!')
 
-# other variables
-n_input = weights[0].shape[1]
-n_output = weights[-1].shape[0]
-inputMins = [0]*n_input # I don't think this is used in this case
-inputMaxes = [1]*n_input # I don't think this is used in this case
-means = [0]*(n_input+1) # I don't think this is used in this case
-ranges = [0]*(n_input+1) # I don't think this is used in this case
-
-# make the file
-filename = 'other_methods/chordal_lipsdp/network.nnet'
-writeNNet.writeNNet(weights, biases, inputMins, inputMaxes, means, ranges, filename)
+# list of weight matrices for affine-ReLU sequences
+# save matrices to file
+arr = np.empty(len(weights), dtype=object)
+arr[:] = weights
+data = {'weights': arr}
+savemat(weight_file, data)

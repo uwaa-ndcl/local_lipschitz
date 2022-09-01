@@ -17,20 +17,22 @@ from max_eigenvalue import k_generic_power_method
 from seqlip import optim_nn_pca_greedy
 
 # add main directory to system path so I can import the files
-script_dir = pathlib.Path(__file__).parent.absolute() 
-main_dir = script_dir.parent
-sys.path.insert(0, main_dir)
+#script_dir = pathlib.Path(__file__).parent.absolute() 
+#main_dir = script_dir.parent
+#sys.path.insert(0, main_dir)
 
 import my_config
 
 # network
-import mnist as exp
-#import cifar10 as exp
-#import alexnet as exp
-#import vgg16 as exp
+#import networks.compnet as exp
+import networks.tiny as exp
+#import networks.mnist as exp
+#import networks.cifar10 as exp
+#import networks.alexnet as exp
+#import networks.vgg16 as exp
 
 # network
-save_dir = os.path.join(exp.main_dir, 'lip_estimation/')
+save_dir = os.path.join(exp.main_dir, 'lipestimation/')
 net = exp.net()
 net = net.to(my_config.device)
 net.eval()

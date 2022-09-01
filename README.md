@@ -18,7 +18,7 @@ Trevor Avant & Kristi A. Morgansen
 
 ## using GPU or CPU
 
-This code can be run on either a CPU or CUDA-supported GPU. If you have a CUDA-supported GPU, it will automatically be used. If you want to manually select which device to use, you can uncomment `device = 'cuda'` or `device = 'cpu'` in the `my_config.py` file.
+This code will automatically run on a CUDA-support GPU if you have one, and on a CPU otherwise. However, you can explicitly tell the code to run on the CPU by uncommenting `device = 'cpu'` in the `my_config.py` file.
 
 
 ## simulations
@@ -29,7 +29,7 @@ Run the following commands.
 * `python calculate_bounds.py`
 * `python calculate_bounds_plot.py`
 
-Note that to change the network, change `import mnist as exp` to something different. Also note that the random and gradient methods may take a long time to run. You can toggle whether these methods are run by chagning the `compute_rand` and `compute_grad` variables.
+Note that to change the network, change `import networks.mnist as exp` to something different. Also note that the random and gradient methods may take a long time to run. You can toggle whether these methods are run by chagning the `compute_rand` and `compute_grad` variables.
 
 
 **adversarial bounds**: 
@@ -37,7 +37,7 @@ Note that to change the network, change `import mnist as exp` to something diffe
 Run the following command:
 * `python calculate_bounds_adv.py`
 
-Note that to change the network, change `import mnist as exp` to something different.
+Note that to change the network, change `import networks.mnist as exp` to something different.
 
 
 ## minimal working example / using your own network
@@ -47,14 +47,19 @@ A minimal working example showing how to compute the local Lipschitz bound of a 
 
 ## comparison with other methods
 
-* lip estimation (Scaman et al., 2018): Run `other_methods/lipestimation/custom.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `custom_get_sv.py` with the same network uncommented.
+We compare our method to several other methods to compute/bound/estimate Lipschitz constants. The network we use is contained in the file `networks/compnet.py`. We were not able to test on LiPopt (Latorre et al., 2020) because it does not support networks with bias.
 
-* LipSDP (Fazlyab et al., 2019): Run `lipsdp/run.py`. Note the code provided by the authors of LipSDP requires Matlab and the [Matlab Engine API for Python](https://www.mathworks.com/help/matlab/matlab-engine-for-python.html).
+* Our Method: Run `$ python networks/compnet.py`.
 
-* LipSDP (Chordal): You must have Julia and Mosek (free for students) installed. Run `$ julia other_methods/chordal-lipsdp/scripts/install_pkgs.jl` to install required packages. Then run `$ julia -i other_methods/chordal-lipsdp/scripts/run_nnet.jl --nnet !!!`. Then in the Julia prompt run `soln, lipconst = solveLipschitz(ffnet, weight_scales, :lipsdp)`. Once that command completes, the solution can then be found by entering `soln` in the Julia prompt. 
-see: https://github.com/AntonXue/chordal-lipsdp
+* [SeqLip](https://github.com/avirmaux/lipEstimation) (Scaman & Virmaux, 2018): Run `other_methods/lipestimation/custom_get_sv.py` with the correct experiment name uncommented (e.g. `exp = 'alexnet')`. Then run `other_methods/lipestimation/custom.py` with the same network uncommented.
 
-* lipMIP: First, you need to install Gurobi (free for students) and the `gurobipy` Python package.
+* [LipSDP](https://github.com/AntonXue/chordal-lipsdp) (Fazlyab et al., 2019): The original implementation of LipSDP uses Matlab. However, we will use a [Python implementation](https://github.com/trevoravant/LipSDP_python) which we wrote, which we have previously verified to produce the same results as the original Matlab version. First, run `$ python other_methods/make_weight_file.py` to generate the weight file. Then run `$ python other_methods/lipsdp_python/solve_sdp.py --form network --weight-path data/compnet/lipsdp/weights.mat` to produce the estimate.
+
+* [LipSDP](https://github.com/AntonXue/chordal-lipsdp) (Fazlyab et al., 2019): The original implementation of LipSDP uses Matlab. However, we will use the implementation from a new paper, which was written by many of the same authors as the original paper. This version requires Python, Julia, and Mosek (free for students). First run `$ julia other_methods/chordal-lipsdp/scripts/install_pkgs.jl` to install required packages. Then run `$ python other_methods/chordla-lipsdp/make_nnet_file.py`. Then run `$ julia -i other_methods/chordal-lipsdp/scripts/run_nnet.jl --nnet other_methods/chordal_lipsdp/network.nnet`. This command will open Julia and eventually bring you to a Julia command prompt. At the Julia prompt run `soln, lipconst = solveLipschitz(ffnet, weight_scales, :lipsdp)`. Once that command completes, the solution can then be found by entering `soln` in the Julia prompt. 
+
+* [lipMIP](https://github.com/revbucket/lipMIP) (Jordan & Dimakis, 2020): First, you need to install Gurobi (free for students) and the `gurobipy` Python package. Then run `python other_methods/lipMIP/run.py`.
+
+* [RecurJac](https://github.com/huanzhang12/RecurJac-and-CROWN) (Zhang et al., 2019): This method requires Tensorflow. First, convert the Pytorch model to a Tensorflow model and save it by running `$ python other_methods/RecurJac-and-CROWN/convert_and_save_model.py`. Then, run  `$ python other_methods/RecurJac-and-CROWN/run.py` to calculate the Lipschitz constant.
 
 ## extra
 
