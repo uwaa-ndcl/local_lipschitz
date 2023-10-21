@@ -6,7 +6,7 @@ This is the code for the paper:
 
 [**Analytical Bounds on the Local Lipschitz Constants of ReLU Networks**](https://ieeexplore.ieee.org/document/10164809)
 
-Trevor Avant & Kristi Morgansen, *IEEE Transactions on Neural Networks and Learning Systems*, 2023
+Trevor Avant & Kristi A. Morgansen, *IEEE Transactions on Neural Networks and Learning Systems*, 2023
 
 
 ## dependencies
