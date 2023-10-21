@@ -2,7 +2,7 @@
 
 ---
 
-This is the code for the paper
+This is the code for the paper:
 
 [**Analytical Bounds on the Local Lipschitz Constants of ReLU Networks**](https://ieeexplore.ieee.org/document/10164809)
 
